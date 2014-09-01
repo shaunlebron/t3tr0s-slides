@@ -1,0 +1,48 @@
+body {
+  padding-top: 75px;
+  background: url("black-Linen2.png");
+}
+
+#app {
+  margin-left: auto;
+  margin-right: auto;
+  width: 1000px;
+}
+
+.canvas-2a4d7 {
+  height: 600px;
+  padding: 20px;
+  float: left;
+  display: inline;
+  background: #111;
+  border-radius: 10px;
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
+
+.code-cb62a {
+  width: 600px;
+  height: 600px;
+  padding: 20px;
+  border-radius: 10px;
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+
+  float: left;
+  display: inline;
+  cursor: default;
+  overflow: scroll;
+
+  background-color: #333;
+  color: #AAA;
+  font-size: 16px;
+}
+
+.active-row-534ed {
+  background-color: #000;
+}
+
+.active-col-d9099 {
+  background-color: #AAA;
+  color: #000;
+}
