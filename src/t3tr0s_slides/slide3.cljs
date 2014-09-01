@@ -81,10 +81,9 @@
       [:div.code-cb62a
        [:pre
         [:code
-         "(def initial-state\n"
-         "  {:board empty-board\n"
-         "   :piece nil\n"
-         "   :position nil})\n"
+         "(def initial-state {:board empty-board\n"
+         "                    :piece nil\n"
+         "                    :position nil})\n"
          "\n"
          "> (assoc initial-state :piece " (piece-code app) "\n"
          "                       :position " (position-code app) ")\n"
