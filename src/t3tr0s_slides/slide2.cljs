@@ -5,6 +5,11 @@
     [sablono.core :refer-macros [html]]
     ))
 
+(def dark-green "#143")
+(def light-green "#175")
+(def dark-purple "#449")
+(def light-purple "#6ad")
+
 (def piece-keys
   [:I :T :O :J :L :S :Z])
 
@@ -76,7 +81,11 @@
                first-p    (list "  {" (str p " ") (data-row p app) "\n")
                last-p     (list "   " (str p " ") (data-row p app) "})\n")
                           (list "   " (str p " ") (data-row p app) "\n"))))
-         
+         "\n\n"
+         (when-let [p (:piece app)]
+           (list
+             "; piece = " (str p) "\n"
+             "; coord = " (str (nth (pieces p) (:index app))) "\n"))
          ]]])))
 
 (def cell-size (quot 600 rows))
@@ -105,9 +114,13 @@
 
 (defn draw-cell!
   [ctx [x y] is-piece is-index is-center]
+  (set! (.. ctx -fillStyle)
+        (cond is-index dark-purple
+              is-piece dark-green
+              :else "transparent"))
   (set! (.. ctx -strokeStyle)
-        (cond is-index "#0FF"
-              is-piece "#FFF"
+        (cond is-index light-purple
+              is-piece light-green
               :else "#888"))
   (set! (.. ctx -lineWidth) 2)
   (let [rx (* cell-size x)
@@ -117,11 +130,15 @@
         cy (* cell-size (+ y 0.5))
         cr (/ cell-size 4)
         ]
+    (.. ctx (fillRect rx ry rs rs))
+    (.. ctx (strokeRect rx ry rs rs))
     (when is-center
       (.. ctx beginPath)
       (.. ctx (arc cx cy cr 0 (* 2 (.-PI js/Math))))
-      (.. ctx stroke))
-    (.. ctx (strokeRect rx ry rs rs))))
+      (.. ctx fill)
+      (.. ctx stroke)
+      )
+    ))
 
 (defn draw-piece!
   [app ctx piece]

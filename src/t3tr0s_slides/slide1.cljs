@@ -44,7 +44,7 @@
          "> (def cols 10)\n"
          "> (def empty-row (vec (repeat cols 0)))\n"
          "> (def empty-board (vec (repeat rows empty-row)))\n"
-         "\n\n"
+         "\n"
          "> empty-board\n\n"
          (for [row (range rows)]
            (condp = row
