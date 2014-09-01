@@ -108,7 +108,7 @@
          }
         ]])))
 
-(defcomponent slide1
+(defcomponent slide
   [app owner]
   (render
     [_]
@@ -120,6 +120,6 @@
 (defn init
   []
   (om/root
-    slide1
+    slide
     app-state
     {:target (. js/document (getElementById "app"))}))
