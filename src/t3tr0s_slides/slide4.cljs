@@ -22,7 +22,7 @@
 (defn rotate-coord [[x y]] [(- y) x])
 (defn rotate-piece [piece] (mapv rotate-coord piece))
 
-(def r0 (rotate-piece (:L pieces)))
+(def r0 (:L pieces))
 (def r1 (rotate-piece r0))
 (def r2 (rotate-piece r1))
 (def r3 (rotate-piece r2))
@@ -30,15 +30,15 @@
 (def rotations [r0 r1 r2 r3])
 
 (def positions
-  {r1 [4 2 ]
-   r2 [4 6 ]
-   r3 [4 10]
-   r4 [4 14]})
+  {r0 [4 2 ]
+   r1 [4 6 ]
+   r2 [4 10]
+   r3 [4 15]})
 
 (defn piece-abs-coords
   [piece]
   (let [[cx cy] (positions piece)]
-    (mapv (fn [[x y]] [(+ cx x) (+ cy y)]) (pieces piece))))
+    (mapv (fn [[x y]] [(+ cx x) (+ cy y)]) piece)))
 
 (def app-state (atom {:piece nil
                       :index nil}))
@@ -82,19 +82,19 @@
          "(defn rotate-piece [piece]\n"
          "  (mapv rotate-coord piece))\n"
          "\n\n"
-         "> (:L pieces)\n"
+         "> (def r0 (:L pieces))\n"
          "\n"
          (piece-code r0 0 app) "\n"
          "\n"
-         "> (rotate-piece *1)\n"
+         "> (def r1 (rotate-piece r0))\n"
          "\n"
          (piece-code r1 1 app) "\n"
          "\n"
-         "> (rotate-piece *1)\n"
+         "> (def r2 (rotate-piece r1))\n"
          "\n"
          (piece-code r2 2 app) "\n"
          "\n"
-         "> (rotate-piece *1)\n"
+         "> (def r3 (rotate-piece r2))\n"
          "\n"
          (piece-code r3 3 app) "\n"
          ]]])))
@@ -109,7 +109,7 @@
                          (when (and (= px x) (= py y))
                            [% i]))
                        (piece-abs-coords %)))
-             (keys pieces))))
+             rotations)))
 
 (defn canvas-mouse
   [app owner e]
@@ -154,7 +154,7 @@
 (defn draw-piece!
   [app ctx piece]
   (let [is-piece (= piece (:piece app))
-        index (and is-piece (:index app))
+        index (:index app)
         center (positions piece)]
     (doseq [[i c] (map-indexed vector (piece-abs-coords piece))]
       (when-not (= i index)
@@ -171,7 +171,7 @@
     (set! (.. ctx -fillStyle) "#111")
     (.. ctx (fillRect 0 0 (* cell-size cols) (* cell-size rows)))
 
-    (doseq [p piece-keys]
+    (doseq [p rotations]
       (draw-piece! app ctx p))
     ))
 
