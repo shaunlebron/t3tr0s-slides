@@ -46,3 +46,10 @@ body {
   background-color: #AAA;
   color: #000;
 }
+
+.clickable-ae1bb {
+  background-color: #AAA;
+  color: #000;
+  cursor: pointer;
+  -webkit-user-select: none;
+}
