@@ -35,8 +35,32 @@
 (def g7 (update-in g6 [:position] move-right))
 (def g8 (update-in g7 [:position] move-right))
 (def g9 (update-in g8 [:piece] rotate-piece))
-(def g10 (update-in g9 [:piece] rotate-piece))
-(def g11 (update-in g10 [:piece] rotate-piece))
+(def g10 (update-in g9 [:position] move-down))
+(def g11 (update-in g10 [:position] move-down))
+(def g12 (update-in g11 [:position] move-down))
+(def g13 (update-in g12 [:position] move-down))
+(def g14 (update-in g13 [:position] move-down))
+(def g15 (update-in g14 [:position] move-down))
+
+(def states [g0 g1 g2 g3 g4 g5 g6 g7 g8 g9 g10 g11 g12 g13 g14 g15])
+
+(def state-places
+  {g0  0
+   g1  1
+   g2  2
+   g3  3
+   g4  4
+   g5  5
+   g6  6
+   g7  7
+   g8  8
+   g9  9
+   g10 10
+   g11 11
+   g12 12
+   g13 13
+   g14 14
+   g15 15})
 
 (defn rotate-coord [[x y]] [(- y) x])
 (defn rotate-piece [piece] (mapv rotate-coord piece))
@@ -74,36 +98,27 @@
          "(defn move-down  [pos] [      x  (inc y) ])\n"
          "\n\n"
          (state-code app g0  "(def g0  {:position [4 6] :piece (:J pieces)})\n")
-         "\n"
          (state-code app g1  "(def g1  (update-in g0  [:position] move-left))\n")
-         "\n"
          (state-code app g2  "(def g2  (update-in g1  [:position] move-left))\n")
-         "\n"
          (state-code app g3  "(def g3  (update-in g2  [:piece]    rotate-piece))\n")
-         "\n"
          (state-code app g4  "(def g4  (update-in g3  [:position] move-down))\n")
-         "\n"
          (state-code app g5  "(def g5  (update-in g4  [:position] move-down))\n")
-         "\n"
          (state-code app g6  "(def g6  (update-in g5  [:piece]    rotate-piece))\n")
-         "\n"
          (state-code app g7  "(def g7  (update-in g6  [:position] move-right))\n")
-         "\n"
          (state-code app g8  "(def g8  (update-in g7  [:position] move-right))\n")
-         "\n"
          (state-code app g9  "(def g9  (update-in g8  [:piece]    rotate-piece))\n")
-         "\n"
-         (state-code app g10 "(def g10 (update-in g9  [:piece]    rotate-piece))\n")
-         "\n"
-         (state-code app g11 "(def g11 (update-in g10 [:piece]    rotate-piece))\n")
+         (state-code app g10 "(def g10 (update-in g9  [:position] move-down))\n")
+         (state-code app g11 "(def g11 (update-in g10 [:position] move-down))\n")
+         (state-code app g12 "(def g12 (update-in g11 [:position] move-down))\n")
+         (state-code app g13 "(def g13 (update-in g12 [:position] move-down))\n")
+         (state-code app g14 "(def g14 (update-in g13 [:position] move-down))\n")
+         (state-code app g15 "(def g15 (update-in g14 [:position] move-down))\n")
          ]]])))
 
 (def cell-size (quot 600 rows))
 
 (defn draw-cell!
   [ctx [x y] is-center]
-  (set! (.. ctx -fillStyle) dark-purple)
-  (set! (.. ctx -strokeStyle) light-purple)
   (set! (.. ctx -lineWidth) 2)
   (let [rx (* cell-size x)
         ry (* cell-size y)
@@ -123,7 +138,7 @@
     ))
 
 (defn draw-piece!
-  [app ctx piece pos]
+  [ctx piece pos ]
   (doseq [[i c] (map-indexed vector (piece-abs-coords piece pos))]
     (draw-cell! ctx c (= c pos))))
 
@@ -137,7 +152,18 @@
     (let [piece (:piece app)
           pos (:position app)]
       (when (and piece pos)
-        (draw-piece! app ctx piece pos)))
+        (let [places (state-places app)]
+          (set! (.. ctx -fillStyle) "#555")
+          (set! (.. ctx -strokeStyle) "#AAA")
+          (doseq [[i {:keys [piece position]}] (map-indexed vector (take places states))]
+            (let [x 7]
+              (set! (.. ctx -globalAlpha) (/ (max 0 (min x (- i (- places x)))) x 5)))
+            (draw-piece! ctx piece position))
+            )
+        (set! (.. ctx -globalAlpha) 1)
+        (set! (.. ctx -fillStyle) dark-purple)
+        (set! (.. ctx -strokeStyle) light-purple)
+        (draw-piece! ctx piece pos)))
     ))
 
 (defcomponent canvas
