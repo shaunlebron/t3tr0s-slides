@@ -83,9 +83,9 @@
                           (list "   " (str p " ") (data-row p app) "\n"))))
          "\n\n"
          (when-let [p (:piece app)]
-           (list
-             "; piece = " (str p) "\n"
-             "; coord = " (str (nth (pieces p) (:index app))) "\n"))
+           (list "; piece = " (str p) "\n"
+           (when-let [i (:index app)]
+             (list "; coord = " (str (nth (pieces p) i)) "\n"))))
          ]]])))
 
 (def cell-size (quot 600 rows))
