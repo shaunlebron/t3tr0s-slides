@@ -49,7 +49,6 @@
    {:key (str "piece" piece)
     :class (if (= piece (:piece app)) "active-row-534ed" "")
     :onMouseEnter #(om/update! app :piece piece)
-    :onMouseLeave #(om/update! app :piece nil)
     }
     "["
     (for [[index [x y]] (map-indexed vector (pieces piece))]
@@ -58,7 +57,6 @@
         :class (if (and (= piece (:piece app))
                         (= index (:index app))) "active-col-d9099")
         :onMouseEnter #(om/update! app :index index)
-        :onMouseLeave #(om/update! app :index nil)
         }
        (let [pad #(if (neg? %) % (str " " %))]
          (str " [" (pad x) " " (pad y) "]"))])
@@ -109,8 +107,9 @@
         col (quot x cell-size)
         row (quot y cell-size)
         [piece index] (piece-index col row)]
-    (om/update! app :piece piece)
-    (om/update! app :index index)))
+    (when (and piece index)
+      (om/update! app :piece piece)
+      (om/update! app :index index))))
 
 (defn draw-cell!
   [ctx [x y] is-piece is-index is-center]
@@ -157,7 +156,7 @@
   [app canvas]
   (let [ctx (.. canvas (getContext "2d"))]
 
-    (set! (.. ctx -fillStyle) "#111")
+    (set! (.. ctx -fillStyle) "#222")
     (.. ctx (fillRect 0 0 (* cell-size cols) (* cell-size rows)))
 
     (doseq [p piece-keys]
@@ -182,8 +181,6 @@
         {:ref "canvas"
          :style {:position "relative"}
          :onMouseMove #(canvas-mouse app owner %)
-         :onMouseLeave #(do (om/update! app :row nil)
-                            (om/update! app :col nil))
          }
         ]])))
 

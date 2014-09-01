@@ -14,7 +14,7 @@ body {
   padding: 20px;
   float: left;
   display: inline;
-  background: #111;
+  background: #222;
   border-radius: 10px;
   border-top-left-radius: 0;
   border-bottom-left-radius: 0;
@@ -39,7 +39,7 @@ body {
 }
 
 .active-row-534ed {
-  background-color: #000;
+  background-color: #222;
 }
 
 .active-col-d9099 {

@@ -157,7 +157,7 @@
   [app canvas]
   (let [ctx (.. canvas (getContext "2d"))]
 
-    (set! (.. ctx -fillStyle) "#111")
+    (set! (.. ctx -fillStyle) "#222")
     (.. ctx (fillRect 0 0 (* cell-size cols) (* cell-size rows)))
 
     (draw-piece! ctx (:piece-name app) (:position app))

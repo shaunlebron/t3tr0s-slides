@@ -72,7 +72,7 @@
   (let [ctx (.. canvas (getContext "2d"))
         x (:col app)
         y (:row app)]
-    (set! (.. ctx -fillStyle) "#111")
+    (set! (.. ctx -fillStyle) "#222")
     (.. ctx (fillRect 0 0 (* cell-size cols) (* cell-size rows)))
     (when (and x y)
       (set! (.. ctx -fillStyle) "#143")
