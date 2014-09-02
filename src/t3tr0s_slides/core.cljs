@@ -6,8 +6,9 @@
     [t3tr0s-slides.slide4 :as slide4]
     [t3tr0s-slides.slide5 :as slide5]
     [t3tr0s-slides.slide6 :as slide6]
+    [t3tr0s-slides.slide7 :as slide7]
     ))
 
 (enable-console-print!)
 
-(.addEventListener js/window "load" slide6/init)
+(.addEventListener js/window "load" slide7/init)
