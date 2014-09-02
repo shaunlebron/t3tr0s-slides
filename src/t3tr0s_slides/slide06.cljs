@@ -87,19 +87,22 @@
 
 (defcomponent code
   [app owner]
+  (did-mount [_]
+    (let [block (om/get-node owner "code")]
+      (.highlightBlock js/hljs block))
+    )
   (render
     [_]
     (html
       [:div.code-cb62a
        [:pre
-        [:code
+        [:code#lang-clj
+         {:ref "code"}
          "(def game-state\n"
          "  (atom {:board empty-board]\n"
          "         :piece (:J pieces)\n"
          "         :position [4 6]}))\n"
          "\n\n"
-         (state-code app "g0"  g0  "@game-state\n")
-         "\n"
          (state-code app "g1"  g1  "(swap! game-state update-in [:position] move-left)\n")
          (state-code app "g2"  g2  "(swap! game-state update-in [:position] move-left)\n")
          (state-code app "g3"  g3  "(swap! game-state update-in [:piece]    rotate-piece)\n")

@@ -1,0 +1,38 @@
+/* styles used in Chris Granger's live game editor
+ * https://github.com/ibdknox/live-cljs */
+
+.hljs {
+  display: block;
+  overflow-x: auto;
+  -webkit-text-size-adjust: none;
+  color: #b2b2b2;
+}
+
+span.hljs-built_in {
+  color: #0a8;
+}
+
+/* keywords */
+span.hljs-attribute {
+  color: #a6c;
+}
+
+span.hljs-comment {
+  color: #888;
+}
+
+span.hljs-number {
+  color: #69c;
+}
+
+span.hljs-string {
+  color: #69c;
+}
+
+/*
+.cm-s-default span.cm-builtin {color: #0a8;}
+.cm-s-default span.cm-number {color: #69c;}
+.cm-s-default span.cm-tag {color: #a6c;}
+.cm-s-default span.cm-comment {color: #888;}
+.cm-s-default span.cm-string {color: #69c;}
+*/

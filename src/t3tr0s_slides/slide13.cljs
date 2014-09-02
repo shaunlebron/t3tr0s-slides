@@ -161,12 +161,17 @@
 
 (defcomponent code
   [app owner]
+  (did-mount [_]
+    (let [block (om/get-node owner "code")]
+      (.highlightBlock js/hljs block))
+    )
   (render
     [_]
     (html
       [:div.code-cb62a
        [:pre
         [:code
+         {:ref "code"}
          "(defn collapse-rows\n"
          "  [board]\n"
          "  (let [filled? (filled-rows board)\n"
