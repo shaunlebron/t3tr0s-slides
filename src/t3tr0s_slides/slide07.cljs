@@ -1,4 +1,4 @@
-(ns t3tr0s-slides.slide9
+(ns t3tr0s-slides.slide07
   (:require
     [om.core :as om :include-macros true]
     [om-tools.core :refer-macros [defcomponent]]
@@ -9,8 +9,6 @@
 (def light-green "#175")
 (def dark-purple "#449")
 (def light-purple "#6ad")
-(def dark-red "#944")
-(def light-red "#f8c")
 
 (def pieces
   {:I [[-1  0] [ 0  0] [ 1  0] [ 2  0]]
@@ -28,31 +26,10 @@
 (def cols 10)
 (def empty-row (vec (repeat cols 0)))
 (def empty-board (vec (repeat rows empty-row)))
-(def filled-board
-  [[ 0 0 0 0 0 0 0 0 0 0 ]
-   [ 0 0 0 0 0 0 0 0 0 0 ]
-   [ 0 0 0 0 0 0 0 0 0 0 ]
-   [ 0 0 0 0 0 0 0 0 0 0 ]
-   [ 0 0 0 0 0 0 0 0 0 0 ]
-   [ 0 0 0 0 0 0 0 0 0 0 ]
-   [ 0 0 0 0 0 0 0 0 0 0 ]
-   [ 0 0 0 0 0 0 0 0 0 0 ]
-   [ 0 0 0 0 0 0 0 0 0 0 ]
-   [ 0 0 0 0 0 0 0 0 0 0 ]
-   [ 0 0 0 0 0 0 0 0 0 0 ]
-   [ 0 0 0 0 0 0 0 0 0 0 ]
-   [ 0 0 0 0 0 0 0 0 0 0 ]
-   [ 0 0 0 0 0 0 0 0 0 0 ]
-   [ 0 0 1 0 0 0 0 0 0 0 ]
-   [ 0 0 1 0 0 0 0 0 0 0 ]
-   [ 0 1 1 1 0 0 0 0 1 0 ]
-   [ 1 1 1 1 0 0 0 0 1 0 ]
-   [ 1 1 1 1 1 0 0 0 1 0 ]
-   [ 1 1 1 1 1 1 1 1 1 0 ]])
 
-(def initial-pos [4 2])
+(def initial-pos [4 6])
 
-(def app-state (atom {:board filled-board
+(def app-state (atom {:board empty-board
                       :piece (:T pieces)
                       :position initial-pos}))
 
@@ -71,45 +48,13 @@
       update-in [:board]
         write-piece piece position)))
 
-(defn piece-fits?
-  [board piece [cx cy]]
-  (every? (fn [[x y]]
-            (zero? (get-in board [(+ y cy) (+ x cx)])))
-          piece))
-
-(defn app-piece-fits?
-  []
-  (boolean (piece-fits? (:board @app-state) (:piece @app-state) (:position @app-state))))
-
-(defn try-shift! [dx]
-  (let [piece (:piece @app-state)
-        [x y] (:position @app-state)
-        board (:board @app-state)
-        new-pos [(+ x dx) y]]
-    (when (piece-fits? board piece new-pos)
-      (swap! app-state assoc :position new-pos))))
-
-(defn try-rotate! []
-  (let [piece (:piece @app-state)
-        pos (:position @app-state)
-        board (:board @app-state)
-        new-piece (rotate-piece piece)]
-    (when (piece-fits? board new-piece pos)
-      (swap! app-state assoc :piece new-piece))))
-
-(defn get-drop-pos
-  [board piece [x y]]
-  (let [collide? (fn [cy] (not (piece-fits? board piece [x cy])))
-        cy (first (filter collide? (iterate inc y)))]
-    (max y (dec cy))))
-
-(defn hard-drop! []
-  (let [piece (:piece @app-state)
-        [x y] (:position @app-state)
-        board (:board @app-state)
-        ny (get-drop-pos board piece [x y])]
-    (swap! app-state assoc :position [x ny])
-    (lock-piece!)))
+(defn data-row
+  [row app]
+  [:span
+    "["
+    (for [col (range cols)]
+      (str " " (get-in @app-state [:board row col])))
+    " ]"])
 
 (defcomponent code
   [app owner]
@@ -119,22 +64,26 @@
       [:div.code-cb62a
        [:pre
         [:code
-         "(defn try-shift! [dx]\n"
-         "  (let [piece (:piece @game-state)\n"
-         "        [x y] (:position @game-state)\n"
-         "        board (:board @game-state)\n"
-         "        new-pos [(+ x dx) y]]\n"
-         "    (when (piece-fits? board piece new-pos)\n"
-         "      (swap! game-state assoc :position new-pos))))\n"
-         "\n\n"
-         "(defn try-rotate! []\n"
-         "  (let [piece (:piece @game-state)\n"
-         "        pos (:position @game-state)\n"
-         "        board (:board @game-state)\n"
-         "        new-piece (rotate-piece piece)]\n"
-         "    (when (piece-fits? board new-piece pos)\n"
-         "      (swap! game-state assoc :piece new-piece))))\n"
-         "\n\n"
+         "(defn write-piece\n"
+         "  [board coords [cx cy]]\n"
+         "  (if-let [[x y] (first coords)]\n"
+         "    (recur (assoc-in board [(+ y cy) (+ x cx)] 1)\n"
+         "           (rest coords)\n"
+         "           [cx cy])\n"
+         "    board))\n"
+         "\n"
+         "(defn lock-piece! []\n"
+         "  (let [{:keys [piece position]} @game-state]\n"
+         "    (swap! game-state update-in [:board]\n"
+         "        write-piece piece position)))\n"
+         "\n"
+         "> (:board @game-state)\n"
+         "\n"
+         (for [row (range rows)]
+           (condp = row
+             0          (list "  [" (data-row row app) "\n")
+             (dec rows) (list "   " (data-row row app) "])\n")
+             (list "   " (data-row row app) "\n")))
          ]]])))
 
 (def cell-size (quot 600 rows))
@@ -189,36 +138,30 @@
     (draw-board! ctx (:board app))
 
     (let [piece (:piece app)
-          pos (:position app)
-          fits (app-piece-fits?)
-          ]
+          pos (:position app)]
       (when (and piece pos)
-        (set! (.. ctx -fillStyle)   (if fits dark-purple dark-red))
-        (set! (.. ctx -strokeStyle) (if fits light-purple light-red))
+        (set! (.. ctx -fillStyle) dark-purple)
+        (set! (.. ctx -strokeStyle) light-purple)
         (draw-piece! ctx piece pos)))
     ))
 
-(def key-names
-  {37 :left
-   38 :up
-   39 :right
-   40 :down
-   32 :space})
-
-(def key-name #(-> % .-keyCode key-names))
-
-(defn key-down [e]
-  (let [kname (key-name e)]
-  (case kname
-    :left  (try-shift! -1)
-    :right (try-shift! 1)
-    :up    (try-rotate!)
-    nil)
-  (when (#{:down :left :right :space :up} kname)
-    (.preventDefault e))))
+(defn canvas-mouse
+  [app owner e]
+  (let [clicking (om/get-state owner :clicking)
+        canvas (om/get-node owner)
+        rect (.getBoundingClientRect canvas)
+        x (- (.-clientX e) (.-left rect) 20)
+        y (- (.-clientY e) (.-top rect) 20)
+        col (quot x cell-size)
+        row (quot y cell-size)]
+    (om/update! app :position [col row])
+    (when clicking
+      (lock-piece!))))
 
 (defcomponent canvas
   [app owner]
+  (init-state [_]
+    {:clicking false})
   (did-mount [_]
     (let [canvas (om/get-node owner "canvas")]
       (set! (.. canvas -width) (* cols cell-size))
@@ -234,6 +177,11 @@
        [:canvas
         {:ref "canvas"
          :style {:position "relative"}
+         :onMouseDown #(do (om/set-state! owner :clicking true)
+                           (lock-piece!))
+         :onMouseUp    #(om/set-state! owner :clicking false)
+         :onMouseLeave #(om/set-state! owner :clicking false)
+         :onMouseMove #(canvas-mouse app owner %)
          }
         ]])))
 
@@ -251,12 +199,4 @@
   (om/root
     slide
     app-state
-    {:target (. js/document (getElementById "app"))})
-
-  (.addEventListener js/window "keydown" key-down)
-  )
-
-(defn cleanup
-  []
-  (.removeEventListener js/window "keydown" key-down)
-  )
+    {:target (. js/document (getElementById "app"))}))

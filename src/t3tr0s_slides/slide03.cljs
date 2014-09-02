@@ -1,4 +1,4 @@
-(ns t3tr0s-slides.slide3
+(ns t3tr0s-slides.slide03
   (:require
     [om.core :as om :include-macros true]
     [om-tools.core :refer-macros [defcomponent]]

@@ -1,4 +1,4 @@
-(ns t3tr0s-slides.slide4
+(ns t3tr0s-slides.slide02
   (:require
     [om.core :as om :include-macros true]
     [om-tools.core :refer-macros [defcomponent]]
@@ -10,6 +10,18 @@
 (def dark-purple "#449")
 (def light-purple "#6ad")
 
+(def piece-keys
+  [:I :T :O :J :L :S :Z])
+
+(def positions
+  {:I [4 1 ]
+   :T [4 4 ]
+   :O [4 7 ]
+   :J [4 10]
+   :L [4 13]
+   :S [4 16]
+   :Z [4 19]})
+
 (def pieces
   {:I [[-1  0] [ 0  0] [ 1  0] [ 2  0]]
    :L [[ 1 -1] [-1  0] [ 0  0] [ 1  0]]
@@ -19,47 +31,31 @@
    :O [[ 0 -1] [ 1 -1] [ 0  0] [ 1  0]]
    :T [[ 0 -1] [-1  0] [ 0  0] [ 1  0]]})
 
-(defn rotate-coord [[x y]] [(- y) x])
-(defn rotate-piece [piece] (mapv rotate-coord piece))
-
-(def r0 (:L pieces))
-(def r1 (rotate-piece r0))
-(def r2 (rotate-piece r1))
-(def r3 (rotate-piece r2))
-
-(def rotations [r0 r1 r2 r3])
-
-(def positions
-  {r0 [4 2 ]
-   r1 [4 6 ]
-   r2 [4 10]
-   r3 [4 15]})
-
 (defn piece-abs-coords
   [piece]
   (let [[cx cy] (positions piece)]
-    (mapv (fn [[x y]] [(+ cx x) (+ cy y)]) piece)))
+    (mapv (fn [[x y]] [(+ cx x) (+ cy y)]) (pieces piece))))
 
-(def app-state (atom {:piece nil
-                      :index nil}))
+(def app-state (atom {:piece nil :index nil}))
 
 (def rows 20)
 (def cols 10)
 (def empty-row (vec (repeat cols 0)))
 (def empty-board (vec (repeat rows empty-row)))
 
-(defn piece-code
-  [piece pkey app]
+(defn data-row
+  [piece app]
   [:span
-   {:key (str "piece" pkey)
+   {:key (str "piece" piece)
     :class (if (= piece (:piece app)) "active-row-534ed" "")
     :onMouseEnter #(om/update! app :piece piece)
     }
-    "   ["
-    (for [[index [x y]] (map-indexed vector piece)]
+    "["
+    (for [[index [x y]] (map-indexed vector (pieces piece))]
       [:span 
-       {:key (str "index" index)
-        :class (if (= index (:index app)) "active-col-d9099" "")
+       {:key (str "piece" piece "index" index)
+        :class (if (and (= piece (:piece app))
+                        (= index (:index app))) "active-col-d9099")
         :onMouseEnter #(om/update! app :index index)
         }
        (let [pad #(if (neg? %) % (str " " %))]
@@ -74,27 +70,20 @@
       [:div.code-cb62a
        [:pre
         [:code
-         "(defn rotate-coord [[x y]]\n"
-         "  [ (- y) x ])\n"
-         "\n"
-         "(defn rotate-piece [piece]\n"
-         "  (mapv rotate-coord piece))\n"
+         "(def pieces\n"
+         (let [ps piece-keys
+               first-p (first ps)
+               last-p (last ps)]
+           (for [p ps]
+             (condp = p
+               first-p    (list "  {" (str p " ") (data-row p app) "\n")
+               last-p     (list "   " (str p " ") (data-row p app) "})\n")
+                          (list "   " (str p " ") (data-row p app) "\n"))))
          "\n\n"
-         "> (def r0 (:L pieces))\n"
-         "\n"
-         (piece-code r0 0 app) "\n"
-         "\n"
-         "> (def r1 (rotate-piece r0))\n"
-         "\n"
-         (piece-code r1 1 app) "\n"
-         "\n"
-         "> (def r2 (rotate-piece r1))\n"
-         "\n"
-         (piece-code r2 2 app) "\n"
-         "\n"
-         "> (def r3 (rotate-piece r2))\n"
-         "\n"
-         (piece-code r3 3 app) "\n"
+         (when-let [p (:piece app)]
+           (list "; piece = " (str p) "\n"
+           (when-let [i (:index app)]
+             (list "; coord = " (str (nth (pieces p) i)) "\n"))))
          ]]])))
 
 (def cell-size (quot 600 rows))
@@ -107,7 +96,7 @@
                          (when (and (= px x) (= py y))
                            [% i]))
                        (piece-abs-coords %)))
-             rotations)))
+             (keys pieces))))
 
 (defn canvas-mouse
   [app owner e]
@@ -153,7 +142,7 @@
 (defn draw-piece!
   [app ctx piece]
   (let [is-piece (= piece (:piece app))
-        index (:index app)
+        index (and is-piece (:index app))
         center (positions piece)]
     (doseq [[i c] (map-indexed vector (piece-abs-coords piece))]
       (when-not (= i index)
@@ -170,7 +159,7 @@
     (set! (.. ctx -fillStyle) "#222")
     (.. ctx (fillRect 0 0 (* cell-size cols) (* cell-size rows)))
 
-    (doseq [p rotations]
+    (doseq [p piece-keys]
       (draw-piece! app ctx p))
     ))
 
@@ -192,8 +181,6 @@
         {:ref "canvas"
          :style {:position "relative"}
          :onMouseMove #(canvas-mouse app owner %)
-         :onMouseLeave #(do (om/update! app :row nil)
-                            (om/update! app :col nil))
          }
         ]])))
 

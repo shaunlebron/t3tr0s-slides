@@ -1,16 +1,17 @@
 (ns t3tr0s-slides.core
   (:require
-    [t3tr0s-slides.slide1 :as slide1]
-    [t3tr0s-slides.slide2 :as slide2]
-    [t3tr0s-slides.slide3 :as slide3]
-    [t3tr0s-slides.slide4 :as slide4]
-    [t3tr0s-slides.slide5 :as slide5]
-    [t3tr0s-slides.slide6 :as slide6]
-    [t3tr0s-slides.slide7 :as slide7]
-    [t3tr0s-slides.slide8 :as slide8]
-    [t3tr0s-slides.slide9 :as slide9]
+    [t3tr0s-slides.slide01 :as slide01]
+    [t3tr0s-slides.slide02 :as slide02]
+    [t3tr0s-slides.slide03 :as slide03]
+    [t3tr0s-slides.slide04 :as slide04]
+    [t3tr0s-slides.slide05 :as slide05]
+    [t3tr0s-slides.slide06 :as slide06]
+    [t3tr0s-slides.slide07 :as slide07]
+    [t3tr0s-slides.slide08 :as slide08]
+    [t3tr0s-slides.slide09 :as slide09]
+    [t3tr0s-slides.slide10 :as slide10]
     ))
 
 (enable-console-print!)
 
-(.addEventListener js/window "load" slide9/init)
+(.addEventListener js/window "load" slide10/init)
