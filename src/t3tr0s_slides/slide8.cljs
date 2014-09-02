@@ -99,9 +99,10 @@
         [:code
          "(defn piece-fits?\n"
          "  [board piece [cx cy]]\n"
-         "  (every? (fn [[x y]]\n"
-         "            (zero? (get-in board [(+ y cy) (+ x cx)])))\n"
-         "          piece))\n"
+         "  (every?\n"
+         "    (fn [[x y]]\n"
+         "      (zero? (get-in board [(+ y cy) (+ x cx)])))\n"
+         "    piece))\n"
          "\n\n"
          "> (piece-fits? board (:T pieces) " (pr-str (:position @app-state)) ")\n"
          "\n"
