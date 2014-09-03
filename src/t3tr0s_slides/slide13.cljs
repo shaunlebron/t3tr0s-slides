@@ -44,17 +44,17 @@
    [ 0 0 0 0 0 0 0 0 0 0 ]
    [ 0 0 0 0 0 0 0 0 0 0 ]
    [ 0 0 0 0 0 0 0 0 0 0 ]
-   [ 0 0 1 0 0 0 0 0 0 0 ]
-   [ 0 0 1 0 0 0 0 0 0 0 ]
-   [ 0 1 1 1 0 0 0 0 1 0 ]
-   [ 1 1 1 1 0 0 0 0 1 0 ]
-   [ 1 1 1 1 1 0 0 0 1 0 ]
-   [ 1 1 1 1 1 1 1 1 1 0 ]])
+   [ 0 0 0 0 0 0 0 0 0 0 ]
+   [ 0 0 1 0 0 0 0 0 1 0 ]
+   [ 0 1 1 1 0 1 1 0 1 1 ]
+   [ 1 1 1 1 0 1 1 1 1 1 ]
+   [ 1 1 1 1 0 1 1 0 1 1 ]
+   [ 1 1 1 1 0 1 1 1 1 1 ]])
 
-(def initial-pos [4 2])
+(def initial-pos [5 2])
 
 (def app-state (atom {:board filled-board
-                      :piece (:T pieces)
+                      :piece (rotate-piece (:I pieces))
                       :position initial-pos}))
 
 (defn write-piece
