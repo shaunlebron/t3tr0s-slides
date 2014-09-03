@@ -14,6 +14,7 @@
     [t3tr0s-slides.slide11 :as slide11]
     [t3tr0s-slides.slide12 :as slide12]
     [t3tr0s-slides.slide13 :as slide13]
+    [t3tr0s-slides.slide14 :as slide14]
     ))
 
 (enable-console-print!)
@@ -32,7 +33,9 @@
    {:id "slide10" :init slide10/init :resume slide10/resume :stop slide10/stop}
    {:id "slide11" :init slide11/init :resume slide11/resume :stop slide11/stop}
    {:id "slide12" :init slide12/init :resume slide12/resume :stop slide12/stop}
-   {:id "slide13" :init slide13/init :resume slide13/resume :stop slide13/stop}])
+   {:id "slide13" :init slide13/init :resume slide13/resume :stop slide13/stop}
+   {:id "slide14" :init slide14/init :resume slide14/resume :stop slide14/stop}
+   ])
 
 (def current-slide (atom nil))
 
