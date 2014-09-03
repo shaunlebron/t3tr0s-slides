@@ -43,6 +43,10 @@
         (if (nil? i-prev)
           (.css      (js/$ elm) #js {:left pos})
           (.velocity (js/$ elm) #js {:left pos}))))
+    (let [stop   (-> slides (get i-prev) :stop)
+          resume (-> slides (get i) :resume)]
+      (when stop (stop))
+      (when resume (resume)))
     (aset js/document "location" "hash" (str i))))
 
 (add-watch current-slide :slide on-slide-change)
@@ -72,7 +76,6 @@
   (let [hash- (.replace (aget js/document "location" "hash") #"^#" "")]
     (when (= hash- "")
       (aset js/document "location" "hash" "0"))
-    (js/console.log (pr-str hash-))
     (let [slide-number (js/parseInt hash-)
           slide (get slides slide-number)]
       (when slide
@@ -81,7 +84,6 @@
 (defn init-slides!
   []
   (doseq [{:keys [id init]} slides]
-    (println id)
     (init id)))
 
 (defn init []

@@ -1,5 +1,6 @@
 body {
   background: url("black-Linen2.png");
+  overflow: hidden;
 }
 
 pre {
