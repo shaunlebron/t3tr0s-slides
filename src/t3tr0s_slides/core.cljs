@@ -1,5 +1,6 @@
 (ns t3tr0s-slides.core
   (:require
+    [t3tr0s-slides.slide00 :as slide00]
     [t3tr0s-slides.slide01 :as slide01]
     [t3tr0s-slides.slide02 :as slide02]
     [t3tr0s-slides.slide03 :as slide03]
@@ -18,7 +19,8 @@
 (enable-console-print!)
 
 (def slides
-  [{:id "slide01" :init slide01/init :resume slide01/resume :stop slide01/stop}
+  [{:id "slide00" :init slide00/init :resume slide00/resume :stop slide00/stop}
+   {:id "slide01" :init slide01/init :resume slide01/resume :stop slide01/stop}
    {:id "slide02" :init slide02/init :resume slide02/resume :stop slide02/stop}
    {:id "slide03" :init slide03/init :resume slide03/resume :stop slide03/stop}
    {:id "slide04" :init slide04/init :resume slide04/resume :stop slide04/stop}

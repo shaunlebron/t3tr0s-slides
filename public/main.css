@@ -3,6 +3,18 @@
   src: url("Static.otf");
 }
 
+a {
+  color: inherit;
+}
+
+a.primary-link-c56a0 {
+  color: #0a8;
+}
+
+a.secondary-link-c407f {
+  color: #69c;
+}
+
 body {
   background: url("black-Linen2.png");
   overflow: hidden;
