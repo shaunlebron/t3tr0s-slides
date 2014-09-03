@@ -1,0 +1,100 @@
+@font-face {
+  font-family: "Static";
+  src: url("Static.otf");
+}
+
+a {
+  color: inherit;
+}
+
+a.primary-link-c56a0 {
+  color: #0a8;
+}
+
+a.secondary-link-c407f {
+  color: #69c;
+}
+
+body {
+  background: url("black-Linen2.png");
+  overflow: hidden;
+}
+
+pre {
+  margin: 0;
+}
+
+h1 {
+  color: #EEE;
+  font-family: "Static";
+  text-transform: uppercase;
+}
+
+.slide-f6d7b {
+  position: absolute;
+  top: 50px;
+  margin-left: -490px;
+  width: 980px;
+}
+
+.canvas-2a4d7 {
+  height: 600px;
+  padding: 20px;
+  float: left;
+  display: inline;
+  background: #222;
+  border-radius: 10px;
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+  -webkit-user-select: none;
+}
+
+.code-cb62a {
+  width: 600px;
+  height: 600px;
+  padding: 20px;
+  border-radius: 10px;
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+
+  float: left;
+  display: inline;
+  overflow: hidden;
+
+  background-color: #333;
+  color: #AAA;
+  font-size: 18px;
+}
+
+.active-row-534ed {
+  background-color: #222;
+  cursor: default;
+}
+
+.active-col-d9099 {
+  background-color: #AAA;
+  color: #000;
+  cursor: default;
+}
+
+.clickable-ae1bb {
+  background-color: #AAA;
+  color: #000;
+  cursor: pointer;
+  -webkit-user-select: none;
+}
+
+.syntax-core-4c264 { color: #0a8; } /* clojure core symbols */
+.syntax-kw-18cc2   { color: #a6c; } /* clojure keywords */
+.syntax-lit-60e83  { color: #69c; } /* clojure literals (num,str) */
+.syntax-cmt-d159d  { color: #888; } /* clojure comments */
+
+.active-col-d9099 .syntax-core-4c264 { color: #000; } /* clojure core symbols */
+.active-col-d9099 .syntax-kw-18cc2   { color: #000; } /* clojure keywords */
+.active-col-d9099 .syntax-lit-60e83  { color: #000; } /* clojure literals (num,str) */
+.active-col-d9099 .syntax-cmt-d159d  { color: #000; } /* clojure comments */
+
+.clickable-ae1bb .syntax-core-4c264 { color: #000; } /* clojure core symbols */
+.clickable-ae1bb .syntax-kw-18cc2   { color: #000; } /* clojure keywords */
+.clickable-ae1bb .syntax-lit-60e83  { color: #000; } /* clojure literals (num,str) */
+.clickable-ae1bb .syntax-cmt-d159d  { color: #000; } /* clojure comments */
