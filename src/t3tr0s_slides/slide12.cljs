@@ -296,16 +296,18 @@
        (om/build canvas app)])))
 
 (defn init
-  []
+  [id]
   (om/root
     slide
     app-state
-    {:target (. js/document (getElementById "app"))})
+    {:target (. js/document (getElementById id))}))
 
+(defn resume
+  []
   (.addEventListener js/window "keydown" key-down)
   )
 
-(defn cleanup
+(defn stop
   []
   (.removeEventListener js/window "keydown" key-down)
   )

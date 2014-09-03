@@ -7,10 +7,11 @@ pre {
   margin: 0;
 }
 
-#app {
-  margin-left: auto;
-  margin-right: auto;
-  width: 1000px;
+.slide-f6d7b {
+  position: absolute;
+  top: 50px;
+  margin-left: -490px;
+  width: 980px;
 }
 
 .canvas-2a4d7 {
