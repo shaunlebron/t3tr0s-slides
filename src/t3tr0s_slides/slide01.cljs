@@ -91,14 +91,15 @@
     (set! (.. ctx -fillStyle) "#222")
     (.. ctx (fillRect 0 0 (* cell-size cols) (* cell-size rows)))
     (set! (.. ctx -lineWidth) 2)
-    (when (and x y)
+    (when y
       (set! (.. ctx -fillStyle) dark-green)
       (set! (.. ctx -strokeStyle) light-green)
       (doseq [x0 (range cols) :when (not= x0 x)]
         (draw-cell! ctx [x0 y]))
       (set! (.. ctx -fillStyle) dark-purple)
       (set! (.. ctx -strokeStyle) light-purple)
-      (draw-cell! ctx [x y]))))
+      (when x
+        (draw-cell! ctx [x y])))))
 
 (defcomponent canvas
   [app owner]
