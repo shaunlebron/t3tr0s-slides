@@ -292,6 +292,7 @@
     [_]
     (html
       [:div
+       [:h1 "12. Detect filled rows."]
        (om/build code app)
        (om/build canvas app)])))
 

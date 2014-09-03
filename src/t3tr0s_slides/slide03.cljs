@@ -204,6 +204,7 @@
     [_]
     (html
       [:div
+       [:h1 "3. Create initial state."]
        (om/build code app)
        (om/build canvas app)])))
 

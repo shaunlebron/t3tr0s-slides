@@ -1,3 +1,8 @@
+@font-face {
+  font-family: "Static";
+  src: url("Static.otf");
+}
+
 body {
   background: url("black-Linen2.png");
   overflow: hidden;
@@ -5,6 +10,12 @@ body {
 
 pre {
   margin: 0;
+}
+
+h1 {
+  color: #EEE;
+  font-family: "Static";
+  text-transform: uppercase;
 }
 
 .slide-f6d7b {

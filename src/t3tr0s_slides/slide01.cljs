@@ -117,6 +117,7 @@
     [_]
     (html
       [:div
+       [:h1 "1. Create the board."]
        (om/build code app)
        (om/build canvas app)])))
 

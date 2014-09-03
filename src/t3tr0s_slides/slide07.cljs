@@ -192,6 +192,7 @@
     [_]
     (html
       [:div
+       [:h1 "7. Write piece to board."]
        (om/build code app)
        (om/build canvas app)])))
 

@@ -278,6 +278,7 @@
     [_]
     (html
       [:div
+       [:h1 "11. Draw ghost piece."]
        (om/build code app)
        (om/build canvas app)])))
 

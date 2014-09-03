@@ -192,6 +192,7 @@
     [_]
     (html
       [:div
+       [:h1 "2. Create the pieces."]
        (om/build code app)
        (om/build canvas app)])))
 

@@ -246,6 +246,7 @@
     [_]
     (html
       [:div
+       [:h1 "10. Add hard-drop."]
        (om/build code app)
        (om/build canvas app)])))
 

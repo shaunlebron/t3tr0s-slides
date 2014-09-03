@@ -244,6 +244,7 @@
     [_]
     (html
       [:div
+       [:h1 "9. Constrain controls."]
        (om/build code app)
        (om/build canvas app)])))
 

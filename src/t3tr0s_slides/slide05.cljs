@@ -193,6 +193,7 @@
     [_]
     (html
       [:div
+       [:h1 "5. Test state progression."]
        (om/build code app)
        (om/build canvas app)])))
 

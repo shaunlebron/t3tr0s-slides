@@ -211,6 +211,7 @@
     [_]
     (html
       [:div
+       [:h1 "8. Detect collision."]
        (om/build code app)
        (om/build canvas app)])))
 

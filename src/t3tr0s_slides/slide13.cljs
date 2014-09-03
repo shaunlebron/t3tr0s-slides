@@ -298,6 +298,7 @@
     [_]
     (html
       [:div
+       [:h1 "13. Collapse rows."]
        (om/build code app)
        (om/build canvas app)])))
 

@@ -205,6 +205,7 @@
     [_]
     (html
       [:div
+       [:h1 "4. Rotate Piece."]
        (om/build code app)
        (om/build canvas app)])))
 
