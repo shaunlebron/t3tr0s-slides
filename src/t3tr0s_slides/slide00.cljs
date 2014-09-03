@@ -54,7 +54,7 @@
 (def initial-pos [4 6])
 
 (def app-state (atom {:board filled-board
-                      :piece (:T pieces)
+                      :piece (last (take 4 (iterate rotate-piece (:L pieces))))
                       :position initial-pos}))
 
 (defn write-piece
