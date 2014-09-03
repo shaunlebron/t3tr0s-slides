@@ -6,6 +6,11 @@
     [t3tr0s-slides.syntax-highlight :as sx]
     ))
 
+(def dark-green "#143")
+(def light-green "#175")
+(def dark-purple "#449")
+(def light-purple "#6ad")
+
 (def app-state (atom {:row nil :col nil}))
 
 (def rows 20)
@@ -48,7 +53,7 @@
          "(" (sx/core "def") " empty-board (" (sx/core "vec") " (" (sx/core "repeat") " rows empty-row)))\n"]
         [:code
          "\n"
-         "empty-board\n\n"
+         "> empty-board\n\n"
          (for [row (range rows)]
            (condp = row
              0          (list "  [" (data-row row app) "\n")
@@ -70,6 +75,14 @@
     (om/update! app :row row)
     (om/update! app :col col)))
 
+(defn draw-cell!
+  [ctx [x y]]
+  (let [rx (* cell-size x)
+        ry (* cell-size y)
+        rs cell-size]
+    (.. ctx (fillRect rx ry rs rs))
+    (.. ctx (strokeRect rx ry rs rs))))
+
 (defn draw-canvas!
   [app canvas]
   (let [ctx (.. canvas (getContext "2d"))
@@ -77,16 +90,15 @@
         y (:row app)]
     (set! (.. ctx -fillStyle) "#222")
     (.. ctx (fillRect 0 0 (* cell-size cols) (* cell-size rows)))
+    (set! (.. ctx -lineWidth) 2)
     (when (and x y)
-      (set! (.. ctx -fillStyle) "#143")
-      (set! (.. ctx -strokeStyle) "#175")
-      (set! (.. ctx -lineWidth) 2)
-      (let [rx (* cell-size x)
-            ry (* cell-size y)
-            rs cell-size]
-        (.. ctx (fillRect rx ry rs rs))
-        (.. ctx (strokeRect rx ry rs rs)))
-      )))
+      (set! (.. ctx -fillStyle) dark-green)
+      (set! (.. ctx -strokeStyle) light-green)
+      (doseq [x0 (range cols) :when (not= x0 x)]
+        (draw-cell! ctx [x0 y]))
+      (set! (.. ctx -fillStyle) dark-purple)
+      (set! (.. ctx -strokeStyle) light-purple)
+      (draw-cell! ctx [x y]))))
 
 (defcomponent canvas
   [app owner]
