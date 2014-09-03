@@ -3,6 +3,7 @@
     [om.core :as om :include-macros true]
     [om-tools.core :refer-macros [defcomponent]]
     [sablono.core :refer-macros [html]]
+    [t3tr0s-slides.syntax-highlight :as sx]
     ))
 
 (def dark-green "#143")
@@ -122,18 +123,18 @@
       [:div.code-cb62a
        [:pre
         [:code
-         "(defn get-drop-pos\n"
+         "(" (sx/core "defn") " get-drop-pos\n"
          "  [board piece [x y]]\n"
-         "  (let [clear? #(piece-fits? board piece [x %]))\n"
-         "        cy (first (remove clear? (iterate inc y)))]\n"
-         "    (max y (dec cy))))\n"
+         "  (" (sx/core "let") " [clear? #(piece-fits? board piece [x %]))\n"
+         "        cy (" (sx/core "first") " (" (sx/core "remove") " clear? (" (sx/core "iterate") " " (sx/core "inc") " y)))]\n"
+         "    (" (sx/core "max") " y (" (sx/core "dec") " cy))))\n"
          "\n\n"
-         "(defn hard-drop! []\n"
-         "  (let [piece (:piece @app-state)\n"
-         "        [x y] (:position @app-state)\n"
+         "(" (sx/core "defn") " hard-drop! []\n"
+         "  (" (sx/core "let") " [piece (" (sx/kw ":piece") " @app-state)\n"
+         "        [x y] (" (sx/kw ":position") " @app-state)\n"
          "        board (:board @app-state)\n"
          "        ny (get-drop-pos board piece [x y])]\n"
-         "    (swap! app-state assoc :position [x ny])\n"
+         "    (" (sx/core "swap!") " app-state " (sx/core "assoc") " " (sx/kw ":position") " [x ny])\n"
          "    (lock-piece!)))\n"
          "\n\n"
          ]]])))

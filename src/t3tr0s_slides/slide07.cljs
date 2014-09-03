@@ -3,6 +3,7 @@
     [om.core :as om :include-macros true]
     [om-tools.core :refer-macros [defcomponent]]
     [sablono.core :refer-macros [html]]
+    [t3tr0s-slides.syntax-highlight :as sx]
     ))
 
 (def dark-green "#143")
@@ -53,7 +54,7 @@
   [:span
     "["
     (for [col (range cols)]
-      (str " " (get-in @app-state [:board row col])))
+      (list " " (sx/lit (get-in @app-state [:board row col]))))
     " ]"])
 
 (defcomponent code
@@ -64,20 +65,20 @@
       [:div.code-cb62a
        [:pre
         [:code
-         "(defn write-piece\n"
+         "(" (sx/core "defn") " write-piece\n"
          "  [board coords [cx cy]]\n"
-         "  (if-let [[x y] (first coords)]\n"
-         "    (recur (assoc-in board [(+ y cy) (+ x cx)] 1)\n"
-         "           (rest coords)\n"
+         "  (" (sx/core "if-let") " [[x y] (" (sx/core "first") " coords)]\n"
+         "    (" (sx/core "recur") " (" (sx/core "assoc-in") " board [(" (sx/core "+") " y cy) (" (sx/core "+") " x cx)] " (sx/lit "1") ")\n"
+         "           (" (sx/core "rest") " coords)\n"
          "           [cx cy])\n"
          "    board))\n"
          "\n"
-         "(defn lock-piece! []\n"
-         "  (let [{:keys [piece position]} @game-state]\n"
-         "    (swap! game-state update-in [:board]\n"
+         "(" (sx/core "defn") " lock-piece! []\n"
+         "  (" (sx/core "let") " [{" (sx/kw ":keys") " [piece position]} @game-state]\n"
+         "    (" (sx/core "swap!") " game-state " (sx/core "update-in") " [" (sx/kw ":board") "]\n"
          "        write-piece piece position)))\n"
          "\n"
-         "> (:board @game-state)\n"
+         "> (" (sx/kw ":board") " @game-state)\n"
          "\n"
          (for [row (range rows)]
            (condp = row

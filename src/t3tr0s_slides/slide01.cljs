@@ -3,6 +3,7 @@
     [om.core :as om :include-macros true]
     [om-tools.core :refer-macros [defcomponent]]
     [sablono.core :refer-macros [html]]
+    [t3tr0s-slides.syntax-highlight :as sx]
     ))
 
 (def app-state (atom {:row nil :col nil}))
@@ -29,30 +30,36 @@
         :onMouseEnter #(om/update! app :col col)
         :onMouseLeave #(om/update! app :col nil)
         }
-       (str " " (get-in empty-board [row col]))])
+       (list " " (sx/lit (get-in empty-board [row col])))])
     " ]"])
 
 (defcomponent code
   [app owner]
+  (did-mount [_]
+    (let [block (om/get-node owner "code")]
+      (.highlightBlock js/hljs block))
+    )
   (render
     [_]
     (html
       [:div.code-cb62a
        [:pre
+        [:code#lang-clj
+         {:ref "code"}
+         "(" (sx/core "def") " rows " (sx/lit "20") ")\n"
+         "(" (sx/core "def") " cols " (sx/lit "10") ")\n"
+         "(" (sx/core "def") " empty-row (" (sx/core "vec") " (" (sx/core "repeat") " cols " (sx/lit "0") ")))\n"
+         "(" (sx/core "def") " empty-board (" (sx/core "vec") " (" (sx/core "repeat") " rows empty-row)))\n"]
         [:code
-         "> (def rows 20)\n"
-         "> (def cols 10)\n"
-         "> (def empty-row (vec (repeat cols 0)))\n"
-         "> (def empty-board (vec (repeat rows empty-row)))\n"
          "\n"
-         "> empty-board\n\n"
+         "empty-board\n\n"
          (for [row (range rows)]
            (condp = row
              0          (list "  [" (data-row row app) "\n")
-             (dec rows) (list "   " (data-row row app) "])\n")
-             (list "   " (data-row row app) "\n")))
+             (dec rows) (list "   " (data-row row app) "]\n")
+             (list "   " (data-row row app) "\n")))]
          
-         ]]])))
+         ]])))
 
 (def cell-size (quot 600 rows))
 

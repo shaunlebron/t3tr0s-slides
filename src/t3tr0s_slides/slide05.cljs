@@ -3,6 +3,7 @@
     [om.core :as om :include-macros true]
     [om-tools.core :refer-macros [defcomponent]]
     [sablono.core :refer-macros [html]]
+    [t3tr0s-slides.syntax-highlight :as sx]
     ))
 
 (def dark-green "#143")
@@ -93,26 +94,26 @@
       [:div.code-cb62a
        [:pre
         [:code
-         "(defn move-left  [pos] [ (dec x)      y  ])\n"
-         "(defn move-right [pos] [ (inc x)      y  ])\n"
-         "(defn move-down  [pos] [      x  (inc y) ])\n"
+         "(" (sx/core "defn") " move-left  [pos] [ (" (sx/core "dec") " x)      y  ])\n"
+         "(" (sx/core "defn") " move-right [pos] [ (" (sx/core "inc") " x)      y  ])\n"
+         "(" (sx/core "defn") " move-down  [pos] [      x  (" (sx/core "inc") " y) ])\n"
          "\n\n"
-         (state-code app g0  "(def g0  {:position [4 6] :piece (:J pieces)})\n")
-         (state-code app g1  "(def g1  (update-in g0  [:position] move-left))\n")
-         (state-code app g2  "(def g2  (update-in g1  [:position] move-left))\n")
-         (state-code app g3  "(def g3  (update-in g2  [:piece]    rotate-piece))\n")
-         (state-code app g4  "(def g4  (update-in g3  [:position] move-down))\n")
-         (state-code app g5  "(def g5  (update-in g4  [:position] move-down))\n")
-         (state-code app g6  "(def g6  (update-in g5  [:piece]    rotate-piece))\n")
-         (state-code app g7  "(def g7  (update-in g6  [:position] move-right))\n")
-         (state-code app g8  "(def g8  (update-in g7  [:position] move-right))\n")
-         (state-code app g9  "(def g9  (update-in g8  [:piece]    rotate-piece))\n")
-         (state-code app g10 "(def g10 (update-in g9  [:position] move-down))\n")
-         (state-code app g11 "(def g11 (update-in g10 [:position] move-down))\n")
-         (state-code app g12 "(def g12 (update-in g11 [:position] move-down))\n")
-         (state-code app g13 "(def g13 (update-in g12 [:position] move-down))\n")
-         (state-code app g14 "(def g14 (update-in g13 [:position] move-down))\n")
-         (state-code app g15 "(def g15 (update-in g14 [:position] move-down))\n")
+         (state-code app g0  (list "(" (sx/core "def") " g0  {" (sx/kw ":position") " [" (sx/lit "4") " " (sx/lit "6") "] :piece (" (sx/kw ":J") " pieces)})\n"))
+         (state-code app g1  (list "(" (sx/core "def") " g1  (" (sx/core "update-in") " g0  [" (sx/kw ":position") "] move-left))\n"))
+         (state-code app g2  (list "(" (sx/core "def") " g2  (" (sx/core "update-in") " g1  [" (sx/kw ":position") "] move-left))\n"))
+         (state-code app g3  (list "(" (sx/core "def") " g3  (" (sx/core "update-in") " g2  [" (sx/kw ":piece") "]    rotate-piece))\n"))
+         (state-code app g4  (list "(" (sx/core "def") " g4  (" (sx/core "update-in") " g3  [" (sx/kw ":position") "] move-down))\n"))
+         (state-code app g5  (list "(" (sx/core "def") " g5  (" (sx/core "update-in") " g4  [" (sx/kw ":position") "] move-down))\n"))
+         (state-code app g6  (list "(" (sx/core "def") " g6  (" (sx/core "update-in") " g5  [" (sx/kw ":piece") "]    rotate-piece))\n"))
+         (state-code app g7  (list "(" (sx/core "def") " g7  (" (sx/core "update-in") " g6  [" (sx/kw ":position") "] move-right))\n"))
+         (state-code app g8  (list "(" (sx/core "def") " g8  (" (sx/core "update-in") " g7  [" (sx/kw ":position") "] move-right))\n"))
+         (state-code app g9  (list "(" (sx/core "def") " g9  (" (sx/core "update-in") " g8  [" (sx/kw ":piece") "]    rotate-piece))\n"))
+         (state-code app g10 (list "(" (sx/core "def") " g10 (" (sx/core "update-in") " g9  [" (sx/kw ":position") "] move-down))\n"))
+         (state-code app g11 (list "(" (sx/core "def") " g11 (" (sx/core "update-in") " g10 [" (sx/kw ":position") "] move-down))\n"))
+         (state-code app g12 (list "(" (sx/core "def") " g12 (" (sx/core "update-in") " g11 [" (sx/kw ":position") "] move-down))\n"))
+         (state-code app g13 (list "(" (sx/core "def") " g13 (" (sx/core "update-in") " g12 [" (sx/kw ":position") "] move-down))\n"))
+         (state-code app g14 (list "(" (sx/core "def") " g14 (" (sx/core "update-in") " g13 [" (sx/kw ":position") "] move-down))\n"))
+         (state-code app g15 (list "(" (sx/core "def") " g15 (" (sx/core "update-in") " g14 [" (sx/kw ":position") "] move-down))\n"))
          ]]])))
 
 (def cell-size (quot 600 rows))

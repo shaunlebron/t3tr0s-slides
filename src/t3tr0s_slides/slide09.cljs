@@ -3,6 +3,7 @@
     [om.core :as om :include-macros true]
     [om-tools.core :refer-macros [defcomponent]]
     [sablono.core :refer-macros [html]]
+    [t3tr0s-slides.syntax-highlight :as sx]
     ))
 
 (def dark-green "#143")
@@ -119,21 +120,21 @@
       [:div.code-cb62a
        [:pre
         [:code
-         "(defn try-shift! [dx]\n"
-         "  (let [piece (:piece @game-state)\n"
-         "        [x y] (:position @game-state)\n"
-         "        board (:board @game-state)\n"
-         "        new-pos [(+ x dx) y]]\n"
-         "    (when (piece-fits? board piece new-pos)\n"
-         "      (swap! game-state assoc :position new-pos))))\n"
+         "(" (sx/core "defn") " try-shift! [dx]\n"
+         "  (" (sx/core "let") " [piece (" (sx/kw ":piece") " @game-state)\n"
+         "        [x y] (" (sx/kw ":position") " @game-state)\n"
+         "        board (" (sx/kw ":board") " @game-state)\n"
+         "        new-pos [(" (sx/core "+") " x dx) y]]\n"
+         "    (" (sx/core "when") " (piece-fits? board piece new-pos)\n"
+         "      (" (sx/core "swap!") " game-state assoc " (sx/kw ":position") " new-pos))))\n"
          "\n\n"
-         "(defn try-rotate! []\n"
-         "  (let [piece (:piece @game-state)\n"
-         "        pos (:position @game-state)\n"
-         "        board (:board @game-state)\n"
+         "(" (sx/core "defn") " try-rotate! []\n"
+         "  (" (sx/core "let") " [piece (" (sx/kw ":piece") " @game-state)\n"
+         "        pos (" (sx/kw ":position") " @game-state)\n"
+         "        board (" (sx/kw ":board") " @game-state)\n"
          "        new-piece (rotate-piece piece)]\n"
-         "    (when (piece-fits? board new-piece pos)\n"
-         "      (swap! game-state assoc :piece new-piece))))\n"
+         "    (" (sx/core "when") " (piece-fits? board new-piece pos)\n"
+         "      (" (sx/core "swap!") " game-state assoc " (sx/kw ":piece") " new-piece))))\n"
          "\n\n"
          ]]])))
 

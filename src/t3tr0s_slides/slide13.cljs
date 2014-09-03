@@ -3,6 +3,7 @@
     [om.core :as om :include-macros true]
     [om-tools.core :refer-macros [defcomponent]]
     [sablono.core :refer-macros [html]]
+    [t3tr0s-slides.syntax-highlight :as sx]
     ))
 
 (def dark-green "#143")
@@ -172,17 +173,17 @@
        [:pre
         [:code
          {:ref "code"}
-         "(defn collapse-rows\n"
+         "(" (sx/core "defn") " collapse-rows\n"
          "  [board]\n"
-         "  (let [filled? (filled-rows board)\n"
-         "        cleared (->> board\n"
-         "                     (map-indexed vector)\n"
-         "                     (remove #(filled? (first %)))\n"
-         "                     (map second))\n"
-         "        n (count filled?)]\n"
-         "    (into (vec (repeat n empty-row)) cleared)))\n"
+         "  (" (sx/core "let") " [filled? (filled-rows board)\n"
+         "        cleared (" (sx/core "->>") " board\n"
+         "                     (" (sx/core "map-indexed") " " (sx/core "vector") ")\n"
+         "                     (" (sx/core "remove") " #(filled? (" (sx/core "first") " %)))\n"
+         "                     (map " (sx/core "second") "))\n"
+         "        n (" (sx/core "count") " filled?)]\n"
+         "    (" (sx/core "into") " (" (sx/core "vec") " (" (sx/core "repeat") " n empty-row)) cleared)))\n"
          "\n\n"
-         "(swap! game-state update-in [:board] collapse-rows)\n"
+         "(" (sx/core "swap!") " game-state " (sx/core "update-in") " [" (sx/kw ":board") "] collapse-rows)\n"
          "\n\n"
          ]]])))
 

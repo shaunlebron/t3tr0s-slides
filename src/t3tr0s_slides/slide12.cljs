@@ -3,6 +3,7 @@
     [om.core :as om :include-macros true]
     [om-tools.core :refer-macros [defcomponent]]
     [sablono.core :refer-macros [html]]
+    [t3tr0s-slides.syntax-highlight :as sx]
     ))
 
 (def dark-green "#143")
@@ -164,14 +165,14 @@
       [:div.code-cb62a
        [:pre
         [:code
-         "(defn filled-rows\n"
+         "(" (sx/core "defn") " filled-rows\n"
          "  [board]\n"
-         "  (->> (map-indexed vector board)\n"
-         "       (filter (fn [[i row]] (every? pos? row)))\n"
-         "       (map first)\n"
-         "       (apply hash-set)))\n"
+         "  (" (sx/core "->>") " (" (sx/core "map-indexed") " " (sx/core "vector") " board)\n"
+         "       (" (sx/core "filter") " (" (sx/core "fn") " [[i row]] (" (sx/core "every?") " " (sx/core "pos?") " row)))\n"
+         "       (" (sx/core "map") " " (sx/core "first") ")\n"
+         "       (" (sx/core "apply") " " (sx/core "hash-set") ")))\n"
          "\n\n"
-         "> (filled-rows (:board @game-state))"
+         "> (filled-rows (" (sx/kw ":board") " @game-state))"
          "\n\n"
          "    " (pr-str (filled-rows (:board @app-state))) "\n"
          ]]])))

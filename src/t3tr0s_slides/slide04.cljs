@@ -3,6 +3,7 @@
     [om.core :as om :include-macros true]
     [om-tools.core :refer-macros [defcomponent]]
     [sablono.core :refer-macros [html]]
+    [t3tr0s-slides.syntax-highlight :as sx]
     ))
 
 (def dark-green "#143")
@@ -62,8 +63,9 @@
         :class (if (= index (:index app)) "active-col-d9099" "")
         :onMouseEnter #(om/update! app :index index)
         }
-       (let [pad #(if (neg? %) % (str " " %))]
-         (str " [" (pad x) " " (pad y) "]"))])
+       (let [pad #(if (neg? %) % (str " " %))
+             fmt #(sx/lit (pad %))]
+         (list " [" (fmt x) " " (fmt y) "]"))])
     " ]"])
 
 (defcomponent code
@@ -74,25 +76,25 @@
       [:div.code-cb62a
        [:pre
         [:code
-         "(defn rotate-coord [[x y]]\n"
+         "(" (sx/core "defn") " rotate-coord [[x y]]\n"
          "  [ (- y) x ])\n"
          "\n"
-         "(defn rotate-piece [piece]\n"
-         "  (mapv rotate-coord piece))\n"
+         "(" (sx/core "defn") " rotate-piece [piece]\n"
+         "  (" (sx/core "mapv") " rotate-coord piece))\n"
          "\n\n"
-         "> (def r0 (:L pieces))\n"
+         "> (" (sx/core "def") " r0 (:L pieces))\n"
          "\n"
          (piece-code r0 0 app) "\n"
          "\n"
-         "> (def r1 (rotate-piece r0))\n"
+         "> (" (sx/core "def") " r1 (rotate-piece r0))\n"
          "\n"
          (piece-code r1 1 app) "\n"
          "\n"
-         "> (def r2 (rotate-piece r1))\n"
+         "> (" (sx/core "def") " r2 (rotate-piece r1))\n"
          "\n"
          (piece-code r2 2 app) "\n"
          "\n"
-         "> (def r3 (rotate-piece r2))\n"
+         "> (" (sx/core "def") " r3 (rotate-piece r2))\n"
          "\n"
          (piece-code r3 3 app) "\n"
          ]]])))

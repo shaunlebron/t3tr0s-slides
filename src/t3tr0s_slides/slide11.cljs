@@ -3,6 +3,7 @@
     [om.core :as om :include-macros true]
     [om-tools.core :refer-macros [defcomponent]]
     [sablono.core :refer-macros [html]]
+    [t3tr0s-slides.syntax-highlight :as sx]
     ))
 
 (def dark-green "#143")
@@ -136,7 +137,7 @@
   [:span
     "["
     (for [col (range cols)]
-      (str " " (get-in board [row col])))
+      (list " " (sx/lit (get-in board [row col]))))
     " ]"])
 
 
@@ -148,11 +149,11 @@
       [:div.code-cb62a
        [:pre
         [:code
-         "(defn create-drawable-board\n"
+         "(" (sx/core "defn") " create-drawable-board\n"
          "  [board piece [x y]]\n"
-         "  (let [gy    (get-drop-pos board piece [x y])\n"
-         "        board1 (write-piece board piece [x gy] \"G\")\n"
-         "        board2 (write-piece board piece [x y ] \"P\")]\n"
+         "  (" (sx/core "let") " [gy    (get-drop-pos board piece [x y])\n"
+         "        board1 (write-piece board piece [x gy] " (sx/lit "\"G\"") ")\n"
+         "        board2 (write-piece board piece [x y ] " (sx/lit "\"P\"") ")]\n"
          "    board2))\n"
          "\n"
          "> (create-drawable-board ...)\n"

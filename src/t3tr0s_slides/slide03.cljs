@@ -3,6 +3,7 @@
     [om.core :as om :include-macros true]
     [om-tools.core :refer-macros [defcomponent]]
     [sablono.core :refer-macros [html]]
+    [t3tr0s-slides.syntax-highlight :as sx]
     ))
 
 (def dark-green "#143")
@@ -63,14 +64,24 @@
     :onMouseLeave #(om/update! app :highlight nil)
     :onClick #(om/transact! app :piece-name next-piece)
     }
-   (str "(" (:piece-name app) " pieces)")]
+   (list "(" (sx/kw (str (:piece-name app))) " pieces)")]
   )
+
+(defn full-piece
+  [piece]
+  (let [pad #(if (neg? %) % (str " " %))
+        fmt #(sx/lit (pad %))
+        fmt-coord (fn [[x y]]
+                    (list "[" (fmt x) " " (fmt y) "]"))]
+    (interpose " " (map fmt-coord piece))))
+  
 
 (defn position-code
   [app]
   [:span
    {:class (if (= (:highlight app) :position) "active-col-d9099" "")}
-   (pr-str (:position app))
+   (let [[x y] (:position app)]
+     (list "[" (sx/lit x) " " (sx/lit y) "]"))
    ])
 
 (defcomponent code
@@ -81,17 +92,17 @@
       [:div.code-cb62a
        [:pre
         [:code
-         "(def initial-state {:board empty-board\n"
-         "                    :piece nil\n"
-         "                    :position nil})\n"
+         "(" (sx/core "def") " initial-state {" (sx/kw ":board") " empty-board\n"
+         "                    " (sx/kw ":piece") " " (sx/lit "nil") "\n"
+         "                    " (sx/kw ":position") " " (sx/lit "nil") "})\n"
          "\n"
-         "> (assoc initial-state :piece " (piece-code app) "\n"
-         "                       :position " (position-code app) ")\n"
+         "> (" (sx/core "assoc") " initial-state " (sx/kw ":piece") " " (piece-code app) "\n"
+         "                       " (sx/kw ":position") " " (position-code app) ")\n"
          "\n"
-         "  {:piece " [:span {:class (if (= (:highlight app) :piece) "active-col-d9099" "")}
-                       (pr-str (pieces (:piece-name app)))] "\n"
-         "   :position " (position-code app) "\n"
-         "   :board [[ 0 0 0 0 0 0 0 0 0 0 ]\n"
+         "  {" (sx/kw ":piece") " " [:span {:class (if (= (:highlight app) :piece) "active-col-d9099" "")}
+                       (full-piece (pieces (:piece-name app)))] "\n"
+         "   " (sx/kw ":position") " " (position-code app) "\n"
+         "   " (sx/kw ":board") " [[ 0 0 0 0 0 0 0 0 0 0 ]\n"
          "           [ 0 0 0 0 0 0 0 0 0 0 ]\n"
          "           [ 0 0 0 0 0 0 0 0 0 0 ]\n"
          "           [ 0 0 0 0 0 0 0 0 0 0 ]\n"

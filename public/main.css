@@ -58,3 +58,18 @@ pre {
   cursor: pointer;
   -webkit-user-select: none;
 }
+
+.syntax-core-4c264 { color: #0a8; } /* clojure core symbols */
+.syntax-kw-18cc2   { color: #a6c; } /* clojure keywords */
+.syntax-lit-60e83  { color: #69c; } /* clojure literals (num,str) */
+.syntax-cmt-d159d  { color: #888; } /* clojure comments */
+
+.active-col-d9099 .syntax-core-4c264 { color: #000; } /* clojure core symbols */
+.active-col-d9099 .syntax-kw-18cc2   { color: #000; } /* clojure keywords */
+.active-col-d9099 .syntax-lit-60e83  { color: #000; } /* clojure literals (num,str) */
+.active-col-d9099 .syntax-cmt-d159d  { color: #000; } /* clojure comments */
+
+.clickable-ae1bb .syntax-core-4c264 { color: #000; } /* clojure core symbols */
+.clickable-ae1bb .syntax-kw-18cc2   { color: #000; } /* clojure keywords */
+.clickable-ae1bb .syntax-lit-60e83  { color: #000; } /* clojure literals (num,str) */
+.clickable-ae1bb .syntax-cmt-d159d  { color: #000; } /* clojure comments */

@@ -3,6 +3,7 @@
     [om.core :as om :include-macros true]
     [om-tools.core :refer-macros [defcomponent]]
     [sablono.core :refer-macros [html]]
+    [t3tr0s-slides.syntax-highlight :as sx]
     ))
 
 (def dark-green "#143")
@@ -87,10 +88,6 @@
 
 (defcomponent code
   [app owner]
-  (did-mount [_]
-    (let [block (om/get-node owner "code")]
-      (.highlightBlock js/hljs block))
-    )
   (render
     [_]
     (html
@@ -98,26 +95,26 @@
        [:pre
         [:code#lang-clj
          {:ref "code"}
-         "(def game-state\n"
-         "  (atom {:board empty-board]\n"
-         "         :piece (:J pieces)\n"
-         "         :position [4 6]}))\n"
+         "(" (sx/core "def") " game-state\n"
+         "  (" (sx/core "atom") " {" (sx/kw ":board") " empty-board]\n"
+         "         " (sx/kw ":piece") " (" (sx/kw ":J") " pieces)\n"
+         "         " (sx/kw ":position") " [" (sx/lit "4") " " (sx/lit "6") "]}))\n"
          "\n\n"
-         (state-code app "g1"  g1  "(swap! game-state update-in [:position] move-left)\n")
-         (state-code app "g2"  g2  "(swap! game-state update-in [:position] move-left)\n")
-         (state-code app "g3"  g3  "(swap! game-state update-in [:piece]    rotate-piece)\n")
-         (state-code app "g4"  g4  "(swap! game-state update-in [:position] move-down)\n")
-         (state-code app "g5"  g5  "(swap! game-state update-in [:position] move-down)\n")
-         (state-code app "g6"  g6  "(swap! game-state update-in [:piece]    rotate-piece)\n")
-         (state-code app "g7"  g7  "(swap! game-state update-in [:position] move-right)\n")
-         (state-code app "g8"  g8  "(swap! game-state update-in [:position] move-right)\n")
-         (state-code app "g9"  g9  "(swap! game-state update-in [:piece]    rotate-piece)\n")
-         (state-code app "g10" g10 "(swap! game-state update-in [:position] move-down)\n")
-         (state-code app "g11" g11 "(swap! game-state update-in [:position] move-down)\n")
-         (state-code app "g12" g12 "(swap! game-state update-in [:position] move-down)\n")
-         (state-code app "g13" g13 "(swap! game-state update-in [:position] move-down)\n")
-         (state-code app "g14" g14 "(swap! game-state update-in [:position] move-down)\n")
-         (state-code app "g15" g15 "(swap! game-state update-in [:position] move-down)\n")
+         (state-code app "g1"  g1  (list "(" (sx/core "swap!") " game-state " (sx/core "update-in") " [" (sx/kw ":position") "] move-left)\n"))
+         (state-code app "g2"  g2  (list "(" (sx/core "swap!") " game-state " (sx/core "update-in") " [" (sx/kw ":position") "] move-left)\n"))
+         (state-code app "g3"  g3  (list "(" (sx/core "swap!") " game-state " (sx/core "update-in") " [" (sx/kw ":piece") "]    rotate-piece)\n"))
+         (state-code app "g4"  g4  (list "(" (sx/core "swap!") " game-state " (sx/core "update-in") " [" (sx/kw ":position") "] move-down)\n"))
+         (state-code app "g5"  g5  (list "(" (sx/core "swap!") " game-state " (sx/core "update-in") " [" (sx/kw ":position") "] move-down)\n"))
+         (state-code app "g6"  g6  (list "(" (sx/core "swap!") " game-state " (sx/core "update-in") " [" (sx/kw ":piece") "]    rotate-piece)\n"))
+         (state-code app "g7"  g7  (list "(" (sx/core "swap!") " game-state " (sx/core "update-in") " [" (sx/kw ":position") "] move-right)\n"))
+         (state-code app "g8"  g8  (list "(" (sx/core "swap!") " game-state " (sx/core "update-in") " [" (sx/kw ":position") "] move-right)\n"))
+         (state-code app "g9"  g9  (list "(" (sx/core "swap!") " game-state " (sx/core "update-in") " [" (sx/kw ":piece") "]    rotate-piece)\n"))
+         (state-code app "g10" g10 (list "(" (sx/core "swap!") " game-state " (sx/core "update-in") " [" (sx/kw ":position") "] move-down)\n"))
+         (state-code app "g11" g11 (list "(" (sx/core "swap!") " game-state " (sx/core "update-in") " [" (sx/kw ":position") "] move-down)\n"))
+         (state-code app "g12" g12 (list "(" (sx/core "swap!") " game-state " (sx/core "update-in") " [" (sx/kw ":position") "] move-down)\n"))
+         (state-code app "g13" g13 (list "(" (sx/core "swap!") " game-state " (sx/core "update-in") " [" (sx/kw ":position") "] move-down)\n"))
+         (state-code app "g14" g14 (list "(" (sx/core "swap!") " game-state " (sx/core "update-in") " [" (sx/kw ":position") "] move-down)\n"))
+         (state-code app "g15" g15 (list "(" (sx/core "swap!") " game-state " (sx/core "update-in") " [" (sx/kw ":position") "] move-down)\n"))
          ]]])))
 
 (def cell-size (quot 600 rows))

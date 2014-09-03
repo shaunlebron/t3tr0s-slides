@@ -3,6 +3,7 @@
     [om.core :as om :include-macros true]
     [om-tools.core :refer-macros [defcomponent]]
     [sablono.core :refer-macros [html]]
+    [t3tr0s-slides.syntax-highlight :as sx]
     ))
 
 (def dark-green "#143")
@@ -97,14 +98,15 @@
       [:div.code-cb62a
        [:pre
         [:code
-         "(defn piece-fits?\n"
+         "(" (sx/core "defn") " piece-fits?\n"
          "  [board piece [cx cy]]\n"
-         "  (every?\n"
-         "    (fn [[x y]]\n"
-         "      (zero? (get-in board [(+ y cy) (+ x cx)])))\n"
+         "  (" (sx/core "every?") "\n"
+         "    (" (sx/core "fn") " [[x y]]\n"
+         "      (" (sx/core "zero?") " (" (sx/core "get-in") " board [(" (sx/core "+") " y cy) (" (sx/core "+") " x cx)])))\n"
          "    piece))\n"
          "\n\n"
-         "> (piece-fits? board (:T pieces) " (pr-str (:position @app-state)) ")\n"
+         "> (piece-fits? board (" (sx/kw ":T") " pieces) " (let [[x y] (:position @app-state)]
+                                                             (list "[" (sx/lit x) " " (sx/lit y) "]")) ")\n"
          "\n"
          "   " (str (app-piece-fits?)) "\n"
          "\n"

@@ -3,6 +3,7 @@
     [om.core :as om :include-macros true]
     [om-tools.core :refer-macros [defcomponent]]
     [sablono.core :refer-macros [html]]
+    [t3tr0s-slides.syntax-highlight :as sx]
     ))
 
 (def dark-green "#143")
@@ -58,8 +59,9 @@
                         (= index (:index app))) "active-col-d9099")
         :onMouseEnter #(om/update! app :index index)
         }
-       (let [pad #(if (neg? %) % (str " " %))]
-         (str " [" (pad x) " " (pad y) "]"))])
+       (let [pad #(if (neg? %) % (str " " %))
+             fmt #(sx/lit (pad %))]
+         (list " [" (fmt x) " " (fmt y) "]"))])
     " ]"])
 
 (defcomponent code
@@ -70,20 +72,20 @@
       [:div.code-cb62a
        [:pre
         [:code
-         "(def pieces\n"
+         "(" (sx/core "def") " pieces\n"
          (let [ps piece-keys
                first-p (first ps)
                last-p (last ps)]
            (for [p ps]
              (condp = p
-               first-p    (list "  {" (str p " ") (data-row p app) "\n")
-               last-p     (list "   " (str p " ") (data-row p app) "})\n")
-                          (list "   " (str p " ") (data-row p app) "\n"))))
+               first-p    (list "  {" (sx/kw (str p)) " " (data-row p app) "\n")
+               last-p     (list "   " (sx/kw (str p)) " " (data-row p app) "})\n")
+                          (list "   " (sx/kw (str p)) " " (data-row p app) "\n"))))
          "\n\n"
          (when-let [p (:piece app)]
-           (list "; piece = " (str p) "\n"
+           (list (sx/cmt "; piece = " (str p)) "\n"
            (when-let [i (:index app)]
-             (list "; coord = " (str (nth (pieces p) i)) "\n"))))
+             (list (sx/cmt "; coord = " (str (nth (pieces p) i))) "\n"))))
          ]]])))
 
 (def cell-size (quot 600 rows))
