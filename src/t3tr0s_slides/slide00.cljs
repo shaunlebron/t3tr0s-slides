@@ -103,7 +103,7 @@
          (sx/cmt ";; I find the design patterns very interesting.") "\n"
          "\n"
          (sx/cmt ";; This requires some knowledge of ClojureScript,") "\n"
-         (sx/cmt ";; which you can find " (sx/lit [:a {:href "https://github.com/shaunlebron/ClojureScript-Syntax-in-15-minutes"} "here"]) ".") "\n"
+         (sx/cmt ";; which you can find " (sx/kw [:a {:href "https://github.com/shaunlebron/ClojureScript-Syntax-in-15-minutes"} "here"]) ".") "\n"
          "\n"
          (sx/cmt ";; Created by " (sx/core [:a {:href "http://twitter.com/shaunlebron"} "@shaunlebron"])) "\n"
          (sx/cmt ";; Styling borrowed from " (sx/lit [:a {:href "http://twitter.com/shaunlebron"} "@ibdknox"]) " :)") "\n"
