@@ -36,14 +36,37 @@
 
 (defn on-slide-change
   [_ _ i-prev i]
-  (doseq [[j slide] (map-indexed vector slides)]
-    (let [pos (-> (- j i) (* 100) (+ 50) (str "%"))
-          elm (.getElementById js/document (:id slide))]
-      (if (nil? i-prev)
-        (.css      (js/$ elm) #js {:left pos})
-        (.velocity (js/$ elm) #js {:left pos})))))
+  (when-not (= i-prev i)
+    (doseq [[j slide] (map-indexed vector slides)]
+      (let [pos (-> (- j i) (* 100) (+ 50) (str "%"))
+            elm (.getElementById js/document (:id slide))]
+        (if (nil? i-prev)
+          (.css      (js/$ elm) #js {:left pos})
+          (.velocity (js/$ elm) #js {:left pos}))))
+    (aset js/document "location" "hash" (str i))))
 
 (add-watch current-slide :slide on-slide-change)
+
+(def key-names
+  {37 :left
+   38 :up
+   39 :right
+   40 :down
+   32 :space})
+
+(def key-name #(-> % .-keyCode key-names))
+
+(defn key-down [e]
+  (let [kname (key-name e)
+        shift (.-shiftKey e)]
+    (case kname
+      :left  (when shift
+               (swap! current-slide #(max 0 (dec %)))
+               (.preventDefault e))
+      :right (when shift
+               (swap! current-slide #(min (dec (count slides)) (inc %)))
+               (.preventDefault e))
+      nil)))
 
 (defn- on-hash-change []
   (let [hash- (.replace (aget js/document "location" "hash") #"^#" "")]
@@ -63,6 +86,7 @@
 
 (defn init []
   (init-slides!)
+  (.addEventListener js/window "keydown" key-down)
 
   (aset js/window "onhashchange" on-hash-change)
   (on-hash-change)

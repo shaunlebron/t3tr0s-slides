@@ -1,5 +1,4 @@
 body {
-  padding-top: 75px;
   background: url("black-Linen2.png");
 }
 
@@ -36,7 +35,6 @@ pre {
 
   float: left;
   display: inline;
-  cursor: default;
   overflow: scroll;
 
   background-color: #333;
@@ -46,11 +44,13 @@ pre {
 
 .active-row-534ed {
   background-color: #222;
+  cursor: default;
 }
 
 .active-col-d9099 {
   background-color: #AAA;
   color: #000;
+  cursor: default;
 }
 
 .clickable-ae1bb {
