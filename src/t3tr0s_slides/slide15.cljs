@@ -1,4 +1,4 @@
-(ns t3tr0s-slides.slide00
+(ns t3tr0s-slides.slide15
   (:require
     [om.core :as om :include-macros true]
     [om-tools.core :refer-macros [defcomponent]]
@@ -35,15 +35,15 @@
    [ 0 0 0 0 0 0 0 0 0 0 ]
    [ 0 0 0 0 0 0 0 0 0 0 ]
    [ 0 0 0 0 0 0 0 0 0 0 ]
+   [ 0 0 0 1 0 0 1 0 0 0 ]
    [ 0 0 0 0 0 0 0 0 0 0 ]
-   [ 0 0 0 0 0 0 0 0 0 0 ]
-   [ 0 0 0 0 0 0 0 0 0 0 ]
-   [ 0 0 0 0 0 0 0 0 0 0 ]
-   [ 0 0 0 0 0 0 0 0 0 0 ]
-   [ 0 0 1 0 0 0 1 0 0 0 ]
-   [ 0 0 1 0 0 0 1 1 0 0 ]
    [ 0 0 1 0 0 0 0 1 0 0 ]
-   [ 0 0 1 1 0 0 1 1 0 0 ]
+   [ 0 0 0 1 1 1 1 0 0 0 ]
+   [ 0 0 0 0 0 0 0 0 0 0 ]
+   [ 0 0 0 0 0 0 0 0 0 0 ]
+   [ 0 0 0 0 0 0 0 0 0 0 ]
+   [ 0 0 0 0 0 0 0 1 0 0 ]
+   [ 0 0 0 1 0 0 1 1 0 0 ]
    [ 1 0 1 1 1 0 1 1 0 0 ]
    [ 1 0 1 1 1 0 1 1 0 0 ]
    [ 1 1 1 1 1 1 1 1 1 0 ]
@@ -98,17 +98,19 @@
       [:div.code-cb62a
        [:pre
         [:code
-         (sx/cmt ";; This is an animated & interactive guide to ") "\n"
-         (sx/cmt ";; building a game in ClojureScript, because") "\n"
-         (sx/cmt ";; I find the design patterns very interesting.") "\n"
+         (sx/cmt ";; You can probably guess how to implement the") "\n"
+         (sx/cmt ";; rest of the features, like gravity and") "\n"
+         (sx/cmt ";; the game over animation.") "\n"
          "\n"
-         (sx/cmt ";; This requires some knowledge of ClojureScript,") "\n"
-         (sx/cmt ";; which you can find " (sx/kw [:a {:href "https://github.com/shaunlebron/ClojureScript-Syntax-in-15-minutes"} "here"]) ".") "\n"
+         (sx/cmt ";; Now go play some " (sx/kw [:a {:href "https://github.com/imalooney/t3tr0s"} "T3TR0S"]) "!") "\n"
          "\n"
-         (sx/cmt ";; Created by " (sx/core [:a {:href "http://twitter.com/shaunlebron"} "@shaunlebron"])) "\n"
-         (sx/cmt ";; Styling borrowed from " (sx/lit [:a {:href "http://twitter.com/ibdknox"} "@ibdknox"]) " :)") "\n"
-         "\n\n\n\n\n\n"
-         (sx/cmt ";; ") "SHIFT + RIGHT for next slide" (sx/cmt " ---------------->>")
+         (sx/cmt ";; Thanks to these cool people:") "\n"
+         "\n"
+         (sx/cmt ";;  - " (sx/lit "Elaine Looney")) "\n"
+         (sx/cmt ";;  - " (sx/lit "Luis Gutierrez")) "\n"
+         (sx/cmt ";;  - " (sx/lit "Chris Oakman")) "\n"
+         (sx/cmt ";;  - " (sx/lit "Brett Darnell")) "\n"
+         (sx/cmt ";;  - " (sx/lit "Phil Gambling")) "\n"
          ]]])))
 
 (def cell-size (quot 600 rows))
@@ -161,15 +163,6 @@
     (set! (.. ctx -fillStyle) dark-green)
     (set! (.. ctx -strokeStyle) light-green)
     (draw-board! ctx (:board app))
-
-    (let [piece (:piece app)
-          pos (:position app)
-          fits (app-piece-fits?)
-          ]
-      (when (and piece pos)
-        (set! (.. ctx -fillStyle)   (if fits dark-purple dark-red))
-        (set! (.. ctx -strokeStyle) (if fits light-purple light-red))
-        (draw-piece! ctx piece pos)))
     ))
 
 (defcomponent canvas
@@ -197,7 +190,7 @@
     [_]
     (html
       [:div
-       [:h1 "Tetris in ClojureScript"]
+       [:h1 "That's all for now..."]
        (om/build code app)
        (om/build canvas app)])))
 
