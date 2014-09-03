@@ -147,6 +147,22 @@
    (fn [i row]
      (if (rows i) empty-row row)) board)))
 
+(def prev-filled (atom nil))
+(def prev-cleared (atom nil))
+(def prev-collapsed (atom nil))
+(def anim-index (atom nil))
+
+(defn on-change-anim-index
+  [_ _ _ i]
+  (when i
+    (reset! app-state (get [@prev-cleared
+                            @prev-filled
+                            @prev-cleared
+                            @prev-collapsed] i))))
+
+(add-watch anim-index :history on-change-anim-index)
+
+
 (defn go-go-collapse! []
 
   (let [board     (:board @app-state)
@@ -154,19 +170,27 @@
         cleared   (clear-rows board rows)
         collapsed (collapse-rows board rows)]
 
+    (reset! prev-filled    (assoc @app-state :board board))
+    (reset! prev-cleared   (assoc @app-state :board cleared))
+    (reset! prev-collapsed (assoc @app-state :board collapsed))
+
     (go
       (dotimes [i 3]
 
-        (swap! app-state assoc :board cleared)
+        (reset! anim-index 0)
         (<! (timeout 170))
 
-        (swap! app-state assoc :board board)
+        (reset! anim-index 1)
         (<! (timeout 170)))
 
-      (swap! app-state assoc :board cleared)
+      (reset! anim-index 2)
       (<! (timeout 220))
 
-      (swap! app-state assoc :board collapsed))))
+      (reset! anim-index 3)
+      (<! (timeout 170))
+
+      (reset! anim-index nil)
+      )))
 
 (defn spawn-piece!
   []
@@ -197,12 +221,13 @@
 
 
 (defn data-row
-  [board row app]
+  [index content]
   [:span
-    "["
-    (for [col (range ncols)]
-      (str " " (get-in board [row col])))
-    " ]"])
+   {:class (if (= @anim-index index) "active-row-534ed" "")
+    :onMouseEnter #(when @prev-filled
+                     (reset! anim-index index))
+    }
+   content])
 
 (defcomponent code
   [app owner]
@@ -228,16 +253,16 @@
          "    (" (sx/core "go") "\n"
          "      (" (sx/core "dotimes") " [_ " (sx/lit "3") "]\n"
          "\n"
-         "        (" (sx/core "swap!") " game-state " (sx/core "assoc") " " (sx/kw ":board") " cleared)\n"
+         "        " (data-row 0 (list "(" (sx/core "swap!") " game-state " (sx/core "assoc") " " (sx/kw ":board") " cleared)")) "\n"
          "        (" (sx/core "<!") " (" (sx/core "timeout") " " (sx/lit "170") "))\n"
          "\n"
-         "        (" (sx/core "swap!") " game-state " (sx/core "assoc") " " (sx/kw ":board") " board)\n"
+         "        " (data-row 1 (list "(" (sx/core "swap!") " game-state " (sx/core "assoc") " " (sx/kw ":board") " board)")) "\n"
          "        (" (sx/core "<!") " (" (sx/core "timeout") " " (sx/lit "170") ")))\n"
          "\n"
-         "      (" (sx/core "swap!") " game-state " (sx/core "assoc") " " (sx/kw ":board") " cleared)\n"
+         "      " (data-row 2 (list "(" (sx/core "swap!") " game-state " (sx/core "assoc") " " (sx/kw ":board") " cleared)")) "\n"
          "      (" (sx/core "<!") " (" (sx/core "timeout") " " (sx/lit "220") "))\n"
          "\n"
-         "      (" (sx/core "swap!") " game-state " (sx/core "assoc") " " (sx/kw ":board") " collapsed))))\n"
+         "      " (data-row 3 (list "(" (sx/core "swap!") " game-state " (sx/core "assoc") " " (sx/kw ":board") " collapsed)")) ")))\n"
          ]]])))
 
 (def cell-size (quot 600 nrows))
@@ -276,7 +301,7 @@
   (let [filled? (filled-rows board)]
     (doseq [y (range nrows)
             x (range ncols)]
-      #_(set! (.. ctx -globalAlpha) (if (filled? y) 0.25 1))
+      (set! (.. ctx -globalAlpha) (if (filled? y) 0.3 1))
       (let [v (get-in board [y x])]
         (when-not (zero? v)
           (draw-cell! ctx [x y] false)))
