@@ -94,9 +94,9 @@
       [:div.code-cb62a
        [:pre
         [:code
-         "(" (sx/core "defn") " move-left  [pos] [ (" (sx/core "dec") " x)      y  ])\n"
-         "(" (sx/core "defn") " move-right [pos] [ (" (sx/core "inc") " x)      y  ])\n"
-         "(" (sx/core "defn") " move-down  [pos] [      x  (" (sx/core "inc") " y) ])\n"
+         "(" (sx/core "defn") " move-left  [[x y]] [ (" (sx/core "dec") " x)      y  ])\n"
+         "(" (sx/core "defn") " move-right [[x y]] [ (" (sx/core "inc") " x)      y  ])\n"
+         "(" (sx/core "defn") " move-down  [[x y]] [      x  (" (sx/core "inc") " y) ])\n"
          "\n\n"
          (sx/cmt "; TRY IT: mouse over the states.") "\n\n"
          (state-code app g0  (list "(" (sx/core "def") " g0  {" (sx/kw ":position") " [" (sx/lit "4") " " (sx/lit "6") "] :piece (" (sx/kw ":J") " pieces)})\n"))
