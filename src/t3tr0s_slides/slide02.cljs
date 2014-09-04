@@ -72,6 +72,8 @@
       [:div.code-cb62a
        [:pre
         [:code
+         (sx/cmt "; TRY IT: mouse over the pieces.") "\n"
+         "\n"
          "(" (sx/core "def") " pieces\n"
          (let [ps piece-keys
                first-p (first ps)

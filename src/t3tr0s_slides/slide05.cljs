@@ -98,6 +98,7 @@
          "(" (sx/core "defn") " move-right [pos] [ (" (sx/core "inc") " x)      y  ])\n"
          "(" (sx/core "defn") " move-down  [pos] [      x  (" (sx/core "inc") " y) ])\n"
          "\n\n"
+         (sx/cmt "; TRY IT: mouse over the states.") "\n\n"
          (state-code app g0  (list "(" (sx/core "def") " g0  {" (sx/kw ":position") " [" (sx/lit "4") " " (sx/lit "6") "] :piece (" (sx/kw ":J") " pieces)})\n"))
          (state-code app g1  (list "(" (sx/core "def") " g1  (" (sx/core "update-in") " g0  [" (sx/kw ":position") "] move-left))\n"))
          (state-code app g2  (list "(" (sx/core "def") " g2  (" (sx/core "update-in") " g1  [" (sx/kw ":position") "] move-left))\n"))

@@ -100,6 +100,7 @@
          "         " (sx/kw ":piece") " (" (sx/kw ":J") " pieces)\n"
          "         " (sx/kw ":position") " [" (sx/lit "4") " " (sx/lit "6") "]}))\n"
          "\n\n"
+         (sx/cmt "; TRY IT: mouse over the states.") "\n\n"
          (state-code app "g1"  g1  (list "(" (sx/core "swap!") " game-state " (sx/core "update-in") " [" (sx/kw ":position") "] move-left)\n"))
          (state-code app "g2"  g2  (list "(" (sx/core "swap!") " game-state " (sx/core "update-in") " [" (sx/kw ":position") "] move-left)\n"))
          (state-code app "g3"  g3  (list "(" (sx/core "swap!") " game-state " (sx/core "update-in") " [" (sx/kw ":piece") "]    rotate-piece)\n"))

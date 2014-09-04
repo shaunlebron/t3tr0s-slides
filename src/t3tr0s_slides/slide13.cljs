@@ -168,7 +168,10 @@
       [:div.code-cb62a
        [:pre
         [:code
-         {:ref "code"}
+         (sx/cmt "; TRY IT: press space to hard-drop.") "\n"
+         (sx/cmt ";         press left/right to move.") "\n"
+         (sx/cmt ";         press up to rotate.") "\n"
+         "\n"
          "(" (sx/core "defn") " collapse-rows\n"
          "  [board]\n"
          "  (" (sx/core "let") " [filled? (filled-rows board)\n"

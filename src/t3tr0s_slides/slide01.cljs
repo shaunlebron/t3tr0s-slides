@@ -52,8 +52,10 @@
          "(" (sx/core "def") " empty-row (" (sx/core "vec") " (" (sx/core "repeat") " cols " (sx/lit "0") ")))\n"
          "(" (sx/core "def") " empty-board (" (sx/core "vec") " (" (sx/core "repeat") " rows empty-row)))\n"]
         [:code
-         "\n"
          "> empty-board\n\n"
+         "\n"
+         (sx/cmt "; TRY IT: mouse over the zeros.") "\n"
+         "\n"
          (for [row (range rows)]
            (condp = row
              0          (list "  [" (data-row row app) "\n")

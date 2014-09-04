@@ -165,6 +165,10 @@
       [:div.code-cb62a
        [:pre
         [:code
+         (sx/cmt "; TRY IT: press space to hard-drop.") "\n"
+         (sx/cmt ";         press left/right to move.") "\n"
+         (sx/cmt ";         press up to rotate.") "\n"
+         "\n"
          "(" (sx/core "defn") " filled-rows\n"
          "  [board]\n"
          "  (" (sx/core "->>") " (" (sx/core "map-indexed") " " (sx/core "vector") " board)\n"

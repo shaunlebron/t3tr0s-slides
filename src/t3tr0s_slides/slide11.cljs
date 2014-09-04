@@ -149,6 +149,10 @@
       [:div.code-cb62a
        [:pre
         [:code
+         (sx/cmt "; TRY IT: press space to hard-drop.") "\n"
+         (sx/cmt ";         press left/right to move.") "\n"
+         (sx/cmt ";         press up to rotate.") "\n"
+         "\n"
          "(" (sx/core "defn") " create-drawable-board\n"
          "  [board piece [x y]]\n"
          "  (" (sx/core "let") " [gy    (get-drop-pos board piece [x y])\n"

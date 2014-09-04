@@ -120,6 +120,9 @@
       [:div.code-cb62a
        [:pre
         [:code
+         (sx/cmt "; TRY IT: press left/right to move.") "\n"
+         (sx/cmt ";         press up to rotate.") "\n"
+         "\n"
          "(" (sx/core "defn") " try-shift! [dx]\n"
          "  (" (sx/core "let") " [piece (" (sx/kw ":piece") " @game-state)\n"
          "        [x y] (" (sx/kw ":position") " @game-state)\n"

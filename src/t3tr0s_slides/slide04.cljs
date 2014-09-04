@@ -82,6 +82,7 @@
          "(" (sx/core "defn") " rotate-piece [piece]\n"
          "  (" (sx/core "mapv") " rotate-coord piece))\n"
          "\n\n"
+         (sx/cmt "; TRY IT: mouse over the pieces.") "\n\n"
          "> (" (sx/core "def") " r0 (:L pieces))\n"
          "\n"
          (piece-code r0 0 app) "\n"

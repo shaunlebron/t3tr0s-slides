@@ -98,6 +98,8 @@
       [:div.code-cb62a
        [:pre
         [:code
+         (sx/cmt "; TRY IT: move the piece on the right") "\n"
+         "\n"
          "(" (sx/core "defn") " piece-fits?\n"
          "  [board piece [cx cy]]\n"
          "  (" (sx/core "every?") "\n"

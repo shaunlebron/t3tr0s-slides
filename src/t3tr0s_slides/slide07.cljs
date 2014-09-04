@@ -65,6 +65,7 @@
       [:div.code-cb62a
        [:pre
         [:code
+         (sx/cmt "; TRY IT: click-drag canvas on the right") "\n\n"
          "(" (sx/core "defn") " write-piece\n"
          "  [board coords [cx cy]]\n"
          "  (" (sx/core "if-let") " [[x y] (" (sx/core "first") " coords)]\n"
