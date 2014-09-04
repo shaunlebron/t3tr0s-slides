@@ -111,6 +111,10 @@
          (sx/cmt ";;  - " (sx/lit "Chris Oakman")) "\n"
          (sx/cmt ";;  - " (sx/lit "Brett Darnell")) "\n"
          (sx/cmt ";;  - " (sx/lit "Phil Gambling")) "\n"
+         "\n\n"
+         (sx/cmt ";; If you really want to look at the code") "\n"
+         (sx/cmt ";; for this presentation...") "\n"
+         (sx/cmt ";; ") (sx/core [:a {:href "https://github.com/shaunlebron/t3tr0s-slides"} "here it is."]) "\n"
          ]]])))
 
 (def cell-size (quot 600 rows))
