@@ -2,12 +2,13 @@ pom.xml
 *jar
 /lib/
 /classes/
-/out/
+/out-*
 /target/
 .lein-deps-sum
 .lein-repl-history
 .lein-plugins/
 
 public/t3tr0s_slides.js
+public/t3tr0s_slides.min.js
 
 *.swp

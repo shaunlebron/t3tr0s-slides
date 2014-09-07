@@ -11,9 +11,11 @@ party](http://www.meetup.com/houston-js/events/198371042/) celebrating Tetris's
 ## Setup
 
 1. Install [Leiningen](http://leiningen.org)
-1. Run `lein cljsbuild auto` to run the auto-compiler.
-1. Open `public/index.html`.
+1. Run `lein cljsbuild auto dev` to run the auto-compiler.
+1. Open `public/dev.html`.
 1. `Shift`+`Right|Left` to navigate slides.
+
+(for optimized production builds, use `lein cljsbuild auto min` and `public/index.html`)
 
 ## Implementation
 

@@ -12,9 +12,17 @@
   :source-paths ["src"]
 
   :cljsbuild { 
-    :builds [{:id "t3tr0s-slides"
+    :builds [{:id "dev"
               :source-paths ["src"]
               :compiler {
                 :output-to "public/t3tr0s_slides.js"
-                :output-dir "out"
-                :optimizations :whitespace}}]})
+                :output-dir "out-dev"
+                :optimizations :whitespace}}
+             {:id "min"
+              :source-paths ["src"]
+              :compiler {
+                :externs ["externs/react.js"
+                          "externs/jquery.js"]
+                :output-to "public/t3tr0s_slides.min.js"
+                :output-dir "out-min"
+                :optimizations :advanced}}]})
