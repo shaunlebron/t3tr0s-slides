@@ -157,7 +157,7 @@
          "  [board piece [x y]]\n"
          "  (" (sx/core "let") " [gy    (get-drop-pos board piece [x y])\n"
          "        board1 (write-piece board piece [x gy] " (sx/lit "\"G\"") ")\n"
-         "        board2 (write-piece board piece [x y ] " (sx/lit "\"P\"") ")]\n"
+         "        board2 (write-piece board1 piece [x y ] " (sx/lit "\"P\"") ")]\n"
          "    board2))\n"
          "\n"
          "> (create-drawable-board ...)\n"
