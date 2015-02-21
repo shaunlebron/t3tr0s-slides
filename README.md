@@ -1,8 +1,8 @@
 # Interactive Guide to Tetris in ClojureScript
 
-[VIEW SLIDES HERE](http://shaunlebron.com/t3tr0s-slides)
+[VIEW SLIDES HERE](http://shaunlebron.github.io/t3tr0s-slides)
 
-[![screen](screen.png)](http://shaunlebron.com/t3tr0s-slides)
+[![screen](screen.png)](http://shaunlebron.github.io/t3tr0s-slides)
 
 These are interactive slides that I put together for a [Houston.js meetup
 party](http://www.meetup.com/houston-js/events/198371042/) celebrating Tetris's
