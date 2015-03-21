@@ -147,6 +147,7 @@
    (fn [i row]
      (if (rows i) empty-row row)) board)))
 
+(def resume-state (atom nil))
 (def prev-filled (atom nil))
 (def prev-cleared (atom nil))
 (def prev-collapsed (atom nil))
@@ -219,14 +220,16 @@
               (spawn-piece!))
             ))))))
 
-
 (defn data-row
   [index content]
   [:span
    {:class (if (= @anim-index index) "active-row-534ed" "")
-    :onMouseEnter #(when @prev-filled
-                     (reset! anim-index index))
-    }
+    :onMouseEnter
+    (fn []
+      (when (nil? @anim-index)
+        (reset! resume-state @app-state))
+      (when @prev-filled
+        (reset! anim-index index)))}
    content])
 
 (defcomponent code
@@ -252,6 +255,7 @@
          "\n"
          (sx/cmt "; TRY IT: knock out some rows on the right,") "\n"
          (sx/cmt ";         then mouse over states below.") "\n"
+         (sx/cmt ";         Press \"R\" to resume.") "\n"
          "\n"
          "    (" (sx/kw "go") "\n"
          "      (" (sx/core "dotimes") " [_ " (sx/lit "3") "]\n"
@@ -342,9 +346,18 @@
    38 :up
    39 :right
    40 :down
-   32 :space})
+   32 :space
+   82 :r})
 
 (def key-name #(-> % .-keyCode key-names))
+
+(defn resume-control!
+  []
+  (when (and (not (nil? @anim-index))
+             (not (nil? @resume-state)))
+    (reset! app-state @resume-state)
+    (reset! resume-state nil)
+    (reset! anim-index nil)))
 
 (defn key-down [e]
   (let [kname (key-name e)]
@@ -353,6 +366,7 @@
     :right (try-shift! 1)
     :up    (try-rotate!)
     :space (hard-drop!)
+    :r     (resume-control!)
     nil)
   (when (#{:down :left :right :space :up} kname)
     (.preventDefault e))))
