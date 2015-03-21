@@ -36,12 +36,10 @@
 
 (defn write-piece
   [board coords [cx cy]]
-  (if-let [[x y] (first coords)]
-    (recur (try (assoc-in board [(+ y cy) (+ x cx)] 1)
-                (catch js/Error _ board))
-           (rest coords)
-           [cx cy])
-    board))
+  (reduce (fn [board [x y]]
+            (assoc-in board [(+ y cy) (+ x cx)] 1))
+          board
+          coords))
 
 (defn lock-piece! []
   (let [{:keys [piece position]} @app-state]
@@ -70,11 +68,10 @@
          (sx/cmt "; TRY IT: click-drag canvas on the right") "\n\n"
          "(" (sx/core "defn") " write-piece\n"
          "  [board coords [cx cy]]\n"
-         "  (" (sx/core "if-let") " [[x y] (" (sx/core "first") " coords)]\n"
-         "    (" (sx/core "recur") " (" (sx/core "assoc-in") " board [(" (sx/core "+") " y cy) (" (sx/core "+") " x cx)] " (sx/lit "1") ")\n"
-         "           (" (sx/core "rest") " coords)\n"
-         "           [cx cy])\n"
-         "    board))\n"
+         "  (" (sx/core "reduce") " (" (sx/core "fn") " [board [x y]]\n"
+         "            (" (sx/core "assoc-in") " board [(" (sx/core "+") " y cy) (" (sx/core "+") " x cx)] " (sx/lit "1") "))\n"
+         "          board\n"
+         "          coords))\n"
          "\n"
          "(" (sx/core "defn") " lock-piece! []\n"
          "  (" (sx/core "let") " [{" (sx/kw ":keys") " [piece position]} @game-state]\n"
