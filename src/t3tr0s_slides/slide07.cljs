@@ -53,7 +53,7 @@
     "["
     (for [col (range cols)]
       (let [x (get-in @app-state [:board row col])
-            highlight (if (= 0 x) sx/cmt sx/core)]
+            highlight (if (= 0 x) sx/out sx/core)]
         (list " " (highlight x))))
     " ]"])
 
