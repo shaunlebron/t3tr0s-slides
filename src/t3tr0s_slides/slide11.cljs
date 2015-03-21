@@ -137,7 +137,12 @@
   [:span
     "["
     (for [col (range cols)]
-      (list " " (sx/lit (get-in board [row col]))))
+      (let [x (get-in board [row col])
+            highlight ({0   sx/out
+                        1   sx/core
+                        "P" sx/lit
+                        "G" sx/cmt} x)]
+        (list " " (highlight x))))
     " ]"])
 
 
