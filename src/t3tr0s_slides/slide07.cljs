@@ -54,7 +54,9 @@
   [:span
     "["
     (for [col (range cols)]
-      (list " " (sx/lit (get-in @app-state [:board row col]))))
+      (let [x (get-in @app-state [:board row col])
+            highlight (if (= 0 x) sx/cmt sx/core)]
+        (list " " (highlight x))))
     " ]"])
 
 (defcomponent code
