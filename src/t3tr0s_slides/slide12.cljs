@@ -178,7 +178,9 @@
          "\n\n"
          "> (filled-rows (" (sx/kw ":board") " @game-state))"
          "\n\n"
-         "    " (pr-str (filled-rows (:board @app-state))) "\n"
+         "    #{" (interpose " "
+                    (for [row (filled-rows (:board @app-state))]
+                      (sx/lit row))) "}" "\n"
          ]]])))
 
 (def cell-size (quot 600 rows))
