@@ -1,4 +1,4 @@
-(ns t3tr0s-slides.slide15
+(ns t3tr0s-slides.slide16
   (:require-macros
     [cljs.core.async.macros :refer [go go-loop]])
   (:require
@@ -397,7 +397,7 @@
     [_]
     (html
       [:div
-       [:h1 "15. Add gravity."]
+       [:h1 "16. Add Game Over."]
        (om/build code app)
        (om/build canvas app)])))
 
