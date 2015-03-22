@@ -71,10 +71,10 @@
 
 (defn create-drawable-board
   [board piece [x y]]
-  (let [gy    (get-drop-pos board  piece [x y])
-        board1 (write-piece board  piece [x gy] "G")
-        board2 (write-piece board1 piece [x y ] "P")]
-    board2))
+  (let [gy    (get-drop-pos board  piece [x y])]
+    (-> board
+        (write-piece piece [x gy] "G")
+        (write-piece piece [x y ] "P"))))
 
 (defn app-drawable-board!
   []
@@ -160,10 +160,10 @@
          "\n"
          "(" (sx/core "defn") " create-drawable-board\n"
          "  [board piece [x y]]\n"
-         "  (" (sx/core "let") " [gy    (get-drop-pos board piece [x y])\n"
-         "        board1 (write-piece board piece [x gy] " (sx/lit "\"G\"") ")\n"
-         "        board2 (write-piece board1 piece [x y ] " (sx/lit "\"P\"") ")]\n"
-         "    board2))\n"
+         "  (" (sx/core "let") " [gy    (get-drop-pos board piece [x y])]\n"
+         "    (" (sx/core "->") " board\n"
+         "        (write-piece piece [x gy] " (sx/lit "\"G\"") ")\n"
+         "        (write-piece piece [x y ] " (sx/lit "\"P\"") "))))\n"
          "\n"
          "> (create-drawable-board ...)\n"
          "\n"
