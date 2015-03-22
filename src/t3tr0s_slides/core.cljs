@@ -47,17 +47,28 @@
 
 (defn on-slide-change
   [_ _ i-prev i]
+
   (when-not (= i-prev i)
+
+    ; stop previous animations
+    (doseq [slide slides]
+      (let [elm (.getElementById js/document (:id slide))]
+        (.velocity (js/$ elm) "stop")))
+
+    ; animate to current slide
     (doseq [[j slide] (map-indexed vector slides)]
       (let [pos (-> (- j i) (* 100) (+ 50) (str "%"))
             elm (.getElementById js/document (:id slide))]
         (if (nil? i-prev)
           (.css      (js/$ elm) #js {:left pos})
           (.velocity (js/$ elm) #js {:left pos}))))
+
+    ; call slide's state resume/stop functions
     (let [stop   (-> slides (get i-prev) :stop)
           resume (-> slides (get i) :resume)]
       (when stop (stop))
       (when resume (resume)))
+
     (aset js/document "location" "hash" (str i))))
 
 (add-watch current-slide :slide on-slide-change)
