@@ -99,6 +99,7 @@
        [:pre
         [:code
          (sx/cmt "; TRY IT: move the piece on the right") "\n"
+         (sx/cmt ";         and click to rotate.") "\n"
          "\n"
          "(" (sx/core "defn") " piece-fits?\n"
          "  [board piece [cx cy]]\n"
