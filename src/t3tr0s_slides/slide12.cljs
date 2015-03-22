@@ -225,6 +225,16 @@
           (draw-cell! ctx [x y] false)))
       )))
 
+(defn draw-row-numbers!
+  [ctx]
+  (set! (.. ctx -font) "12px sans-serif")
+  (set! (.. ctx -fillStyle) "rgba(255,255,255,0.2)")
+  (set! (.. ctx -textBaseline) "middle")
+  (doseq [y (range rows)]
+    (let [rx (* cell-size 0.1)
+          ry (* cell-size (+ y 0.5))]
+      (.fillText ctx y rx ry))))
+
 (defn draw-canvas!
   [app canvas]
   (let [ctx (.. canvas (getContext "2d"))]
@@ -250,7 +260,8 @@
         (set! (.. ctx -fillStyle)   (if fits dark-purple dark-red))
         (set! (.. ctx -strokeStyle) (if fits light-purple light-red))
         (draw-piece! ctx piece pos)))
-    ))
+
+    (draw-row-numbers! ctx)))
 
 (def key-names
   {37 :left
