@@ -61,7 +61,7 @@
             elm (.getElementById js/document (:id slide))]
         (if (nil? i-prev)
           (.css      (js/$ elm) #js {:left pos})
-          (.velocity (js/$ elm) #js {:left pos}))))
+          (.velocity (js/$ elm) #js {:left pos} "easeOutQuad"))))
 
     ; call slide's state resume/stop functions
     (let [stop   (-> slides (get i-prev) :stop)
