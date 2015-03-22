@@ -37,7 +37,9 @@
 (defn write-piece
   [board coords [cx cy]]
   (reduce (fn [board [x y]]
-            (assoc-in board [(+ y cy) (+ x cx)] 1))
+            (try
+              (assoc-in board [(+ y cy) (+ x cx)] 1)
+              (catch js/Error _ board)))
           board
           coords))
 
@@ -70,8 +72,7 @@
          "  [board coords [cx cy]]\n"
          "  (" (sx/core "reduce") " (" (sx/core "fn") " [board [x y]]\n"
          "            (" (sx/core "assoc-in") " board [(" (sx/core "+") " y cy) (" (sx/core "+") " x cx)] " (sx/lit "1") "))\n"
-         "          board\n"
-         "          coords))\n"
+         "    board coords))\n"
          "\n"
          "(" (sx/core "defn") " lock-piece! []\n"
          "  (" (sx/core "let") " [{" (sx/kw ":keys") " [piece position]} @game-state]\n"
@@ -79,7 +80,6 @@
          "        write-piece piece position)))\n"
          "\n"
          "> (" (sx/kw ":board") " @game-state)\n"
-         "\n"
          (for [row (range rows)]
            (condp = row
              0          (list "  [" (data-row row app) "\n")
