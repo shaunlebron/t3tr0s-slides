@@ -59,7 +59,7 @@ h1 {
 
   float: left;
   display: inline;
-  overflow: hidden;
+  overflow: auto;
 
   background-color: #333;
   color: #AAA;
