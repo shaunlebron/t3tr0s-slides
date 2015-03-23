@@ -134,10 +134,11 @@
 
 (defn filled-rows
   [board]
-  (->> (map-indexed vector board)
-       (filter (fn [[i row]] (every? pos? row)))
-       (map first)
-       (apply hash-set)))
+  (let [filled? #(every? pos? %)]
+    (->> (map-indexed vector board)      ; [[0 row] [1 row] ...]
+         (filter #(filled? (second %)))  ; [[0 row] [1 row] ...]
+         (map first)                     ; [0 1 2 3 ...]
+         (apply hash-set))))             ; #{0 1 2 3 ...}
 
 (defn collapse-rows
   [rows board]
@@ -169,12 +170,17 @@
          (sx/cmt ";         press left/right to move.") "\n"
          (sx/cmt ";         press up to rotate.") "\n"
          "\n"
+         "(" (sx/core "defn") " filled?\n"
+         "  [[i row]]\n"
+         "  (" (sx/core "every? pos?") " row))\n"
+         "\n"
          "(" (sx/core "defn") " filled-rows\n"
          "  [board]\n"
-         "  (" (sx/core "->>") " (" (sx/core "map-indexed") " " (sx/core "vector") " board)\n"
-         "       (" (sx/core "filter") " (" (sx/core "fn") " [[i row]] (" (sx/core "every?") " " (sx/core "pos?") " row)))\n"
-         "       (" (sx/core "map") " " (sx/core "first") ")\n"
-         "       (" (sx/core "apply") " " (sx/core "hash-set") ")))\n"
+         "  (" (sx/core "->>") " board                  " (sx/cmt "; [row0 row1...]\n")
+         "       (" (sx/core "map-indexed") " " (sx/core "vector") ")   " (sx/cmt "; [[0 row0] [1 row1]...]\n")
+         "       (" (sx/core "filter") " filled?)       " (sx/cmt "; [[0 row0] [1 row1]...]\n")
+         "       (" (sx/core "map") " " (sx/core "first") ")            " (sx/cmt "; [0 1...]\n")
+         "       (" (sx/core "apply") " " (sx/core "hash-set") ")))     " (sx/cmt "; #{0 1...}\n")
          "\n\n"
          "> (filled-rows (" (sx/kw ":board") " @game-state))"
          "\n\n"
