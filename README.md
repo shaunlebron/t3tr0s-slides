@@ -2,7 +2,7 @@
 
 [VIEW SLIDES HERE](http://shaunlebron.github.io/t3tr0s-slides)
 
-[![screen](http://zippy.gfycat.com/QueasyOilyHarvestmen.gif)](http://shaunlebron.github.io/t3tr0s-slides)
+[![screen](http://fat.gfycat.com/ForthrightKindIggypops.gif)](http://shaunlebron.github.io/t3tr0s-slides)
 
 These are interactive slides that I put together for a [Houston.js meetup
 party](http://www.meetup.com/houston-js/events/198371042/) celebrating Tetris's
