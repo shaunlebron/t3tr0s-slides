@@ -6,8 +6,9 @@
                 :compiler {:main t3tr0s-slides.core
                            :output-to "public/t3tr0s_slides.js"
                            :output-dir "public/out-dev"
-                           :source-map "public/t3tr0s_slides.js.map"
-                           :optimizations :whitespace}}
+                           :asset-path "out-dev"
+                           :source-map true
+                           :optimizations :none}}
           :min {:src "src"
                 :compiler {:main t3tr0s-slides.core
                            :output-to "public/t3tr0s_slides.min.js"
