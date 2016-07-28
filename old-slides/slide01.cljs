@@ -3,8 +3,8 @@
     [om.core :as om :include-macros true]
     [om-tools.core :refer-macros [defcomponent]]
     [sablono.core :refer-macros [html]]
-    [t3tr0s-slides.syntax-highlight :as sx]
-    ))
+    [t3tr0s-slides.syntax-highlight :as sx]))
+
 
 (def dark-green "#143")
 (def light-green "#175")
@@ -24,17 +24,17 @@
    {:key (str "row" row)
     :class (if (= row (:row app)) "active-row-534ed" "")
     :onMouseEnter #(om/update! app :row row)
-    :onMouseLeave #(om/update! app :row nil)
-    }
-    "["
+    :onMouseLeave #(om/update! app :row nil)}
+
+   "["
     (for [col (range cols)]
-      [:span 
+      [:span
        {:key (str "row" row "col" col)
         :class (if (and (= row (:row app))
                         (= col (:col app))) "active-col-d9099")
         :onMouseEnter #(om/update! app :col col)
-        :onMouseLeave #(om/update! app :col nil)
-        }
+        :onMouseLeave #(om/update! app :col nil)}
+
        (list " " (sx/lit (get-in empty-board [row col])))])
     " ]"])
 
@@ -60,9 +60,9 @@
            (condp = row
              0          (list "  [" (data-row row app) "\n")
              (dec rows) (list "   " (data-row row app) "]\n")
-             (list "   " (data-row row app) "\n")))]
-         
-         ]])))
+             (list "   " (data-row row app) "\n")))]]])))
+
+
 
 (def cell-size (quot 600 rows))
 
@@ -109,11 +109,11 @@
     (let [canvas (om/get-node owner "canvas")]
       (set! (.. canvas -width) (* cols cell-size))
       (set! (.. canvas -height) (* rows cell-size))
-      (draw-canvas! app (om/get-node owner "canvas"))
-      ))
+      (draw-canvas! app (om/get-node owner "canvas"))))
+
   (did-update [_ _ _]
-    (draw-canvas! app (om/get-node owner "canvas"))
-    )
+    (draw-canvas! app (om/get-node owner "canvas")))
+
   (render [_]
     (html
       [:div.canvas-2a4d7
@@ -122,9 +122,9 @@
          :style {:position "relative"}
          :onMouseMove #(canvas-mouse app owner %)
          :onMouseLeave #(do (om/update! app :row nil)
-                            (om/update! app :col nil))
-         }
-        ]])))
+                            (om/update! app :col nil))}]])))
+
+
 
 (defcomponent slide
   [app owner]
@@ -144,9 +144,8 @@
     {:target (. js/document (getElementById id))}))
 
 (defn resume
-  []
-  )
+  [])
+
 
 (defn stop
-  []
-  )
+  [])

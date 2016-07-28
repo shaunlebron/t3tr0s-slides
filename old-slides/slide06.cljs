@@ -3,8 +3,8 @@
     [om.core :as om :include-macros true]
     [om-tools.core :refer-macros [defcomponent]]
     [sablono.core :refer-macros [html]]
-    [t3tr0s-slides.syntax-highlight :as sx]
-    ))
+    [t3tr0s-slides.syntax-highlight :as sx]))
+
 
 (def dark-green "#143")
 (def light-green "#175")
@@ -115,8 +115,8 @@
          (state-code app "g12" g12 (list "(" (sx/core "swap!") " game-state " (sx/core "update-in") " [" (sx/kw ":position") "] move-down)\n"))
          (state-code app "g13" g13 (list "(" (sx/core "swap!") " game-state " (sx/core "update-in") " [" (sx/kw ":position") "] move-down)\n"))
          (state-code app "g14" g14 (list "(" (sx/core "swap!") " game-state " (sx/core "update-in") " [" (sx/kw ":position") "] move-down)\n"))
-         (state-code app "g15" g15 (list "(" (sx/core "swap!") " game-state " (sx/core "update-in") " [" (sx/kw ":position") "] move-down)\n"))
-         ]]])))
+         (state-code app "g15" g15 (list "(" (sx/core "swap!") " game-state " (sx/core "update-in") " [" (sx/kw ":position") "] move-down)\n"))]]])))
+
 
 (def cell-size (quot 600 rows))
 
@@ -128,20 +128,20 @@
         rs cell-size
         cx (* cell-size (+ x 0.5))
         cy (* cell-size (+ y 0.5))
-        cr (/ cell-size 4)
-        ]
+        cr (/ cell-size 4)]
+
     (.. ctx (fillRect rx ry rs rs))
     (.. ctx (strokeRect rx ry rs rs))
     (when is-center
       (.. ctx beginPath)
       (.. ctx (arc cx cy cr 0 (* 2 (.-PI js/Math))))
       (.. ctx fill)
-      (.. ctx stroke)
-      )
-    ))
+      (.. ctx stroke))))
+
+
 
 (defn draw-piece!
-  [ctx piece pos ]
+  [ctx piece pos]
   (doseq [[i c] (map-indexed vector (piece-abs-coords piece pos))]
     (draw-cell! ctx c (= c pos))))
 
@@ -161,13 +161,13 @@
           (doseq [[i {:keys [piece position]}] (map-indexed vector (take places states))]
             (let [x 7]
               (set! (.. ctx -globalAlpha) (/ (max 0 (min x (- i (- places x)))) x 5)))
-            (draw-piece! ctx piece position))
-            )
+            (draw-piece! ctx piece position)))
+
         (set! (.. ctx -globalAlpha) 1)
         (set! (.. ctx -fillStyle) dark-purple)
         (set! (.. ctx -strokeStyle) light-purple)
-        (draw-piece! ctx piece pos)))
-    ))
+        (draw-piece! ctx piece pos)))))
+
 
 (defcomponent canvas
   [app owner]
@@ -175,19 +175,19 @@
     (let [canvas (om/get-node owner "canvas")]
       (set! (.. canvas -width) (* cols cell-size))
       (set! (.. canvas -height) (* rows cell-size))
-      (draw-canvas! app (om/get-node owner "canvas"))
-      ))
+      (draw-canvas! app (om/get-node owner "canvas"))))
+
   (did-update [_ _ _]
-    (draw-canvas! app (om/get-node owner "canvas"))
-    )
+    (draw-canvas! app (om/get-node owner "canvas")))
+
   (render [_]
     (html
       [:div.canvas-2a4d7
        [:canvas
         {:ref "canvas"
-         :style {:position "relative"}
-         }
-        ]])))
+         :style {:position "relative"}}]])))
+
+
 
 (defcomponent slide
   [app owner]
@@ -207,9 +207,8 @@
     {:target (. js/document (getElementById id))}))
 
 (defn resume
-  []
-  )
+  [])
+
 
 (defn stop
-  []
-  )
+  [])

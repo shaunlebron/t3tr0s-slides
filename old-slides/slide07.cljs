@@ -3,8 +3,8 @@
     [om.core :as om :include-macros true]
     [om-tools.core :refer-macros [defcomponent]]
     [sablono.core :refer-macros [html]]
-    [t3tr0s-slides.syntax-highlight :as sx]
-    ))
+    [t3tr0s-slides.syntax-highlight :as sx]))
+
 
 (def dark-green "#143")
 (def light-green "#175")
@@ -84,8 +84,8 @@
            (condp = row
              0          (list "  [" (data-row row app) "\n")
              (dec rows) (list "   " (data-row row app) "])\n")
-             (list "   " (data-row row app) "\n")))
-         ]]])))
+             (list "   " (data-row row app) "\n")))]]])))
+
 
 (def cell-size (quot 600 rows))
 
@@ -97,24 +97,24 @@
         rs cell-size
         cx (* cell-size (+ x 0.5))
         cy (* cell-size (+ y 0.5))
-        cr (/ cell-size 4)
-        ]
+        cr (/ cell-size 4)]
+
     (.. ctx (fillRect rx ry rs rs))
     (.. ctx (strokeRect rx ry rs rs))
     (when is-center
       (.. ctx beginPath)
       (.. ctx (arc cx cy cr 0 (* 2 (.-PI js/Math))))
       (.. ctx fill)
-      (.. ctx stroke)
-      )
-    ))
+      (.. ctx stroke))))
+
+
 
 (defn piece-abs-coords
   [piece [cx cy]]
   (mapv (fn [[x y]] [(+ cx x) (+ cy y)]) piece))
 
 (defn draw-piece!
-  [ctx piece pos ]
+  [ctx piece pos]
   (doseq [[i c] (map-indexed vector (piece-abs-coords piece pos))]
     (draw-cell! ctx c (= c pos))))
 
@@ -124,8 +124,8 @@
           x (range cols)]
     (let [v (get-in board [y x])]
       (when-not (zero? v)
-        (draw-cell! ctx [x y] false)))
-    ))
+        (draw-cell! ctx [x y] false)))))
+
 
 (defn draw-canvas!
   [app canvas]
@@ -143,8 +143,8 @@
       (when (and piece pos)
         (set! (.. ctx -fillStyle) dark-purple)
         (set! (.. ctx -strokeStyle) light-purple)
-        (draw-piece! ctx piece pos)))
-    ))
+        (draw-piece! ctx piece pos)))))
+
 
 (defn canvas-mouse
   [app owner e]
@@ -167,11 +167,11 @@
     (let [canvas (om/get-node owner "canvas")]
       (set! (.. canvas -width) (* cols cell-size))
       (set! (.. canvas -height) (* rows cell-size))
-      (draw-canvas! app (om/get-node owner "canvas"))
-      ))
+      (draw-canvas! app (om/get-node owner "canvas"))))
+
   (did-update [_ _ _]
-    (draw-canvas! app (om/get-node owner "canvas"))
-    )
+    (draw-canvas! app (om/get-node owner "canvas")))
+
   (render [_]
     (html
       [:div.canvas-2a4d7
@@ -182,9 +182,9 @@
                            (lock-piece!))
          :onMouseUp    #(om/set-state! owner :clicking false)
          :onMouseLeave #(om/set-state! owner :clicking false)
-         :onMouseMove #(canvas-mouse app owner %)
-         }
-        ]])))
+         :onMouseMove #(canvas-mouse app owner %)}]])))
+
+
 
 (defcomponent slide
   [app owner]
@@ -204,9 +204,8 @@
     {:target (. js/document (getElementById id))}))
 
 (defn resume
-  []
-  )
+  [])
+
 
 (defn stop
-  []
-  )
+  [])

@@ -1,10 +1,10 @@
-(ns t3tr0s-slides.slide13
+(ns t3tr0s-slides.slide11
   (:require
     [om.core :as om :include-macros true]
     [om-tools.core :refer-macros [defcomponent]]
     [sablono.core :refer-macros [html]]
-    [t3tr0s-slides.syntax-highlight :as sx]
-    ))
+    [t3tr0s-slides.syntax-highlight :as sx]))
+
 
 (def dark-green "#143")
 (def light-green "#175")
@@ -30,31 +30,31 @@
 (def empty-row (vec (repeat cols 0)))
 (def empty-board (vec (repeat rows empty-row)))
 (def filled-board
-  [[ 0 0 0 0 0 0 0 0 0 0 ]
-   [ 0 0 0 0 0 0 0 0 0 0 ]
-   [ 0 0 0 0 0 0 0 0 0 0 ]
-   [ 0 0 0 0 0 0 0 0 0 0 ]
-   [ 0 0 0 0 0 0 0 0 0 0 ]
-   [ 0 0 0 0 0 0 0 0 0 0 ]
-   [ 0 0 0 0 0 0 0 0 0 0 ]
-   [ 0 0 0 0 0 0 0 0 0 0 ]
-   [ 0 0 0 0 0 0 0 0 0 0 ]
-   [ 0 0 0 0 0 0 0 0 0 0 ]
-   [ 0 0 0 0 0 0 0 0 0 0 ]
-   [ 0 0 0 0 0 0 0 0 0 0 ]
-   [ 0 0 0 0 0 0 0 0 0 0 ]
-   [ 0 0 0 0 0 0 0 0 0 0 ]
-   [ 0 0 0 0 0 0 0 0 0 0 ]
-   [ 0 0 1 0 0 0 0 0 1 0 ]
-   [ 0 1 1 1 0 1 1 0 1 1 ]
-   [ 1 1 1 1 0 1 1 1 1 1 ]
-   [ 1 1 1 1 0 1 1 0 1 1 ]
-   [ 1 1 1 1 0 1 1 1 1 1 ]])
+  [[ 0 0 0 0 0 0 0 0 0 0]
+   [ 0 0 0 0 0 0 0 0 0 0]
+   [ 0 0 0 0 0 0 0 0 0 0]
+   [ 0 0 0 0 0 0 0 0 0 0]
+   [ 0 0 0 0 0 0 0 0 0 0]
+   [ 0 0 0 0 0 0 0 0 0 0]
+   [ 0 0 0 0 0 0 0 0 0 0]
+   [ 0 0 0 0 0 0 0 0 0 0]
+   [ 0 0 0 0 0 0 0 0 0 0]
+   [ 0 0 0 0 0 0 0 0 0 0]
+   [ 0 0 0 0 0 0 0 0 0 0]
+   [ 0 0 0 0 0 0 0 0 0 0]
+   [ 0 0 0 0 0 0 0 0 0 0]
+   [ 0 0 0 0 0 0 0 0 0 0]
+   [ 0 0 1 0 0 0 0 0 0 0]
+   [ 0 0 1 0 0 0 0 0 0 0]
+   [ 0 1 1 1 0 0 0 0 1 0]
+   [ 1 1 1 1 0 0 0 0 1 0]
+   [ 1 1 1 1 1 0 0 0 1 0]
+   [ 1 1 1 1 1 1 1 1 1 0]])
 
-(def initial-pos [5 2])
+(def initial-pos [4 2])
 
 (def app-state (atom {:board filled-board
-                      :piece (rotate-piece (:I pieces))
+                      :piece (:T pieces)
                       :position initial-pos}))
 
 (defn write-piece
@@ -71,10 +71,10 @@
 
 (defn create-drawable-board
   [board piece [x y]]
-  (let [gy    (get-drop-pos board  piece [x y])
-        board1 (write-piece board  piece [x gy] "G")
-        board2 (write-piece board1 piece [x y ] "P")]
-    board2))
+  (let [gy    (get-drop-pos board  piece [x y])]
+    (-> board
+        (write-piece piece [x gy] "G")
+        (write-piece piece [x y ] "P"))))
 
 (defn app-drawable-board!
   []
@@ -121,23 +121,6 @@
         cy (first (filter collide? (iterate inc y)))]
     (max y (dec cy))))
 
-(defn filled-rows
-  [board]
-  (->> (map-indexed vector board)
-       (filter (fn [[i row]] (every? pos? row)))
-       (map first)
-       (apply hash-set)))
-
-(defn collapse-rows
-  [board rows]
-  (let [cleared-board (->> board
-                           (map-indexed vector)
-                           (remove #(rows (first %)))
-                           (map second))
-        n (count rows)
-        new-board (into (vec (repeat n empty-row)) cleared-board)]
-    new-board))
-
 (defn hard-drop! []
   (let [piece (:piece @app-state)
         [x y] (:position @app-state)
@@ -145,20 +128,23 @@
         ny (get-drop-pos board piece [x y])]
     (swap! app-state assoc :position [x ny])
     (lock-piece!)
-    (let [board (:board @app-state)]
-      (swap! app-state assoc
-             :board (collapse-rows board (filled-rows board))
-             :position initial-pos
-             :piece (rand-nth (vals pieces))))
-    ))
+    (swap! app-state assoc :position initial-pos
+                           :piece (rand-nth (vals pieces)))))
+
 
 (defn data-row
   [board row app]
   [:span
     "["
     (for [col (range cols)]
-      (str " " (get-in board [row col])))
+      (let [x (get-in board [row col])
+            highlight ({0   sx/out
+                        1   sx/core
+                        "P" sx/lit
+                        "G" sx/cmt} x)]
+        (list " " (highlight x))))
     " ]"])
+
 
 (defcomponent code
   [app owner]
@@ -172,19 +158,22 @@
          (sx/cmt ";         press left/right to move.") "\n"
          (sx/cmt ";         press up to rotate.") "\n"
          "\n"
-         "(" (sx/core "defn") " collapse-rows\n"
-         "  [board]\n"
-         "  (" (sx/core "let") " [filled? (filled-rows board)\n"
-         "        cleared (" (sx/core "->>") " board\n"
-         "                     (" (sx/core "map-indexed") " " (sx/core "vector") ")\n"
-         "                     (" (sx/core "remove") " #(filled? (" (sx/core "first") " %)))\n"
-         "                     (map " (sx/core "second") "))\n"
-         "        n (" (sx/core "count") " filled?)]\n"
-         "    (" (sx/core "into") " (" (sx/core "vec") " (" (sx/core "repeat") " n empty-row)) cleared)))\n"
-         "\n\n"
-         "(" (sx/core "swap!") " game-state " (sx/core "update-in") " [" (sx/kw ":board") "] collapse-rows)\n"
-         "\n\n"
-         ]]])))
+         "(" (sx/core "defn") " create-drawable-board\n"
+         "  [board piece [x y]]\n"
+         "  (" (sx/core "let") " [gy    (get-drop-pos board piece [x y])]\n"
+         "    (" (sx/core "->") " board\n"
+         "        (write-piece piece [x gy] " (sx/lit "\"G\"") ")\n"
+         "        (write-piece piece [x y ] " (sx/lit "\"P\"") "))))\n"
+         "\n"
+         "> (create-drawable-board ...)\n"
+         "\n"
+         (let [board (app-drawable-board!)]
+           (for [row (range rows)]
+             (condp = row
+               0          (list "  [" (data-row board row app) "\n")
+               (dec rows) (list "   " (data-row board row app) "])\n")
+               (list "   " (data-row board row app) "\n"))))]]])))
+
 
 (def cell-size (quot 600 rows))
 
@@ -196,37 +185,35 @@
         rs cell-size
         cx (* cell-size (+ x 0.5))
         cy (* cell-size (+ y 0.5))
-        cr (/ cell-size 4)
-        ]
+        cr (/ cell-size 4)]
+
     (.. ctx (fillRect rx ry rs rs))
     (.. ctx (strokeRect rx ry rs rs))
     (when is-center
       (.. ctx beginPath)
       (.. ctx (arc cx cy cr 0 (* 2 (.-PI js/Math))))
       (.. ctx fill)
-      (.. ctx stroke)
-      )
-    ))
+      (.. ctx stroke))))
+
+
 
 (defn piece-abs-coords
   [piece [cx cy]]
   (mapv (fn [[x y]] [(+ cx x) (+ cy y)]) piece))
 
 (defn draw-piece!
-  [ctx piece pos ]
+  [ctx piece pos]
   (doseq [[i c] (map-indexed vector (piece-abs-coords piece pos))]
     (draw-cell! ctx c (= c pos))))
 
 (defn draw-board!
   [ctx board]
-  (let [filled? (filled-rows board)]
-    (doseq [y (range rows)
-            x (range cols)]
-      (set! (.. ctx -globalAlpha) (if (filled? y) 0.25 1))
-      (let [v (get-in board [y x])]
-        (when-not (zero? v)
-          (draw-cell! ctx [x y] false)))
-      )))
+  (doseq [y (range rows)
+          x (range cols)]
+    (let [v (get-in board [y x])]
+      (when-not (zero? v)
+        (draw-cell! ctx [x y] false)))))
+
 
 (defn draw-canvas!
   [app canvas]
@@ -235,25 +222,24 @@
     (set! (.. ctx -fillStyle) "#222")
     (.. ctx (fillRect 0 0 (* cell-size cols) (* cell-size rows)))
 
-    (set! (.. ctx -fillStyle)   dark-green)
+    (set! (.. ctx -fillStyle) dark-green)
     (set! (.. ctx -strokeStyle) light-green)
     (draw-board! ctx (:board app))
-    (set! (.. ctx -globalAlpha) 1)
 
     (let [piece (:piece app)
           pos (:position app)
           drop-y (get-drop-pos (:board @app-state) piece pos)
           drop-pos (assoc pos 1 drop-y)
-          fits (app-piece-fits?)
-          ]
+          fits (app-piece-fits?)]
+
       (when (and piece pos)
         (set! (.. ctx -fillStyle)   "#333")
         (set! (.. ctx -strokeStyle) "#666")
         (draw-piece! ctx piece drop-pos)
         (set! (.. ctx -fillStyle)   (if fits dark-purple dark-red))
         (set! (.. ctx -strokeStyle) (if fits light-purple light-red))
-        (draw-piece! ctx piece pos)))
-    ))
+        (draw-piece! ctx piece pos)))))
+
 
 (def key-names
   {37 :left
@@ -266,14 +252,14 @@
 
 (defn key-down [e]
   (let [kname (key-name e)]
-  (case kname
-    :left  (try-shift! -1)
-    :right (try-shift! 1)
-    :up    (try-rotate!)
-    :space (hard-drop!)
-    nil)
-  (when (#{:down :left :right :space :up} kname)
-    (.preventDefault e))))
+   (case kname
+     :left  (try-shift! -1)
+     :right (try-shift! 1)
+     :up    (try-rotate!)
+     :space (hard-drop!)
+     nil)
+   (when (#{:down :left :right :space :up} kname)
+     (.preventDefault e))))
 
 (defcomponent canvas
   [app owner]
@@ -281,19 +267,19 @@
     (let [canvas (om/get-node owner "canvas")]
       (set! (.. canvas -width) (* cols cell-size))
       (set! (.. canvas -height) (* rows cell-size))
-      (draw-canvas! app (om/get-node owner "canvas"))
-      ))
+      (draw-canvas! app (om/get-node owner "canvas"))))
+
   (did-update [_ _ _]
-    (draw-canvas! app (om/get-node owner "canvas"))
-    )
+    (draw-canvas! app (om/get-node owner "canvas")))
+
   (render [_]
     (html
       [:div.canvas-2a4d7
        [:canvas
         {:ref "canvas"
-         :style {:position "relative"}
-         }
-        ]])))
+         :style {:position "relative"}}]])))
+
+
 
 (defcomponent slide
   [app owner]
@@ -301,7 +287,7 @@
     [_]
     (html
       [:div
-       [:h1 "13. Collapse rows."]
+       [:h1 "11. Draw ghost piece."]
        (om/build code app)
        (om/build canvas app)])))
 
@@ -314,10 +300,9 @@
 
 (defn resume
   []
-  (.addEventListener js/window "keydown" key-down)
-  )
+  (.addEventListener js/window "keydown" key-down))
+
 
 (defn stop
   []
-  (.removeEventListener js/window "keydown" key-down)
-  )
+  (.removeEventListener js/window "keydown" key-down))

@@ -3,8 +3,8 @@
     [om.core :as om :include-macros true]
     [om-tools.core :refer-macros [defcomponent]]
     [sablono.core :refer-macros [html]]
-    [t3tr0s-slides.syntax-highlight :as sx]
-    ))
+    [t3tr0s-slides.syntax-highlight :as sx]))
+
 
 (def dark-green "#143")
 (def light-green "#175")
@@ -24,9 +24,9 @@
   [:I :T :O :J :L :S :Z])
 
 (def positions
-  {:I [4 1 ]
-   :T [4 4 ]
-   :O [4 7 ]
+  {:I [4 1]
+   :T [4 4]
+   :O [4 7]
    :J [4 10]
    :L [4 13]
    :S [4 16]
@@ -48,8 +48,8 @@
 (def initial-pos [4 6])
 (def app-state (atom {:piece-name :J
                       :position initial-pos
-                      :highlight nil
-                      }))
+                      :highlight nil}))
+
 
 (def rows 20)
 (def cols 10)
@@ -62,10 +62,10 @@
    {:class (if (= (:highlight app) :piece) "clickable-ae1bb" "")
     :onMouseEnter #(om/update! app :highlight :piece)
     :onMouseLeave #(om/update! app :highlight nil)
-    :onClick #(om/transact! app :piece-name next-piece)
-    }
-   (list "(" (sx/kw (str (:piece-name app))) " pieces)")]
-  )
+    :onClick #(om/transact! app :piece-name next-piece)}
+
+   (list "(" (sx/kw (str (:piece-name app))) " pieces)")])
+
 
 (defn full-piece
   [piece]
@@ -74,15 +74,15 @@
         fmt-coord (fn [[x y]]
                     (list "[" (fmt x) " " (fmt y) "]"))]
     (interpose " " (map fmt-coord piece))))
-  
+
 
 (defn position-code
   [app]
   [:span
    {:class (if (= (:highlight app) :position) "active-col-d9099" "")}
    (let [[x y] (:position app)]
-     (list "[" (sx/lit x) " " (sx/lit y) "]"))
-   ])
+     (list "[" (sx/lit x) " " (sx/lit y) "]"))])
+
 
 (defcomponent code
   [app owner]
@@ -103,7 +103,7 @@
          "                       " (sx/kw ":position") " " (position-code app) ")\n"
          "\n"
          "  {" (sx/kw ":piece") " " [:span {:class (if (= (:highlight app) :piece) "active-col-d9099" "")}
-                       (full-piece (pieces (:piece-name app)))] "\n"
+                                     (full-piece (pieces (:piece-name app)))] "\n"
          "   " (sx/kw ":position") " " (position-code app) "\n"
          "   " (sx/kw ":board") " [[ 0 0 0 0 0 0 0 0 0 0 ]\n"
          "           [ 0 0 0 0 0 0 0 0 0 0 ]\n"
@@ -124,8 +124,8 @@
          "           [ 0 0 0 0 0 0 0 0 0 0 ]\n"
          "           [ 0 0 0 0 0 0 0 0 0 0 ]\n"
          "           [ 0 0 0 0 0 0 0 0 0 0 ]\n"
-         "           [ 0 0 0 0 0 0 0 0 0 0 ]]}\n"
-         ]]])))
+         "           [ 0 0 0 0 0 0 0 0 0 0 ]]}\n"]]])))
+
 
 (def cell-size (quot 600 rows))
 
@@ -149,23 +149,23 @@
         rs cell-size
         cx (* cell-size (+ x 0.5))
         cy (* cell-size (+ y 0.5))
-        cr (/ cell-size 4)
-        ]
+        cr (/ cell-size 4)]
+
     (.. ctx (fillRect rx ry rs rs))
     (.. ctx (strokeRect rx ry rs rs))
     (when is-center
       (.. ctx beginPath)
       (.. ctx (arc cx cy cr 0 (* 2 (.-PI js/Math))))
       (.. ctx fill)
-      (.. ctx stroke)
-      )
-    ))
+      (.. ctx stroke))))
+
+
 
 (defn draw-piece!
   [ctx piece pos]
   (doseq [[i c] (map-indexed vector (piece-abs-coords piece pos))]
-    (draw-cell! ctx c (= c pos)))
-  )
+    (draw-cell! ctx c (= c pos))))
+
 
 (defn draw-canvas!
   [app canvas]
@@ -174,8 +174,8 @@
     (set! (.. ctx -fillStyle) "#222")
     (.. ctx (fillRect 0 0 (* cell-size cols) (* cell-size rows)))
 
-    (draw-piece! ctx (:piece-name app) (:position app))
-    ))
+    (draw-piece! ctx (:piece-name app) (:position app))))
+
 
 (defcomponent canvas
   [app owner]
@@ -183,11 +183,11 @@
     (let [canvas (om/get-node owner "canvas")]
       (set! (.. canvas -width) (* cols cell-size))
       (set! (.. canvas -height) (* rows cell-size))
-      (draw-canvas! app (om/get-node owner "canvas"))
-      ))
+      (draw-canvas! app (om/get-node owner "canvas"))))
+
   (did-update [_ _ _]
-    (draw-canvas! app (om/get-node owner "canvas"))
-    )
+    (draw-canvas! app (om/get-node owner "canvas")))
+
   (render [_]
     (html
       [:div.canvas-2a4d7
@@ -197,9 +197,9 @@
          :onMouseMove #(do (canvas-mouse app owner %)
                            (om/update! app :highlight :position))
          :onMouseLeave #(do (om/update! app :position initial-pos)
-                            (om/update! app :highlight nil))
-         }
-        ]])))
+                            (om/update! app :highlight nil))}]])))
+
+
 
 (defcomponent slide
   [app owner]
@@ -219,9 +219,8 @@
     {:target (. js/document (getElementById id))}))
 
 (defn resume
-  []
-  )
+  [])
+
 
 (defn stop
-  []
-  )
+  [])

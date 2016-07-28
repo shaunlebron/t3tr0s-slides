@@ -3,8 +3,8 @@
     [om.core :as om :include-macros true]
     [om-tools.core :refer-macros [defcomponent]]
     [sablono.core :refer-macros [html]]
-    [t3tr0s-slides.syntax-highlight :as sx]
-    ))
+    [t3tr0s-slides.syntax-highlight :as sx]))
+
 
 (def dark-green "#143")
 (def light-green "#175")
@@ -15,9 +15,9 @@
   [:I :T :O :J :L :S :Z])
 
 (def positions
-  {:I [4 1 ]
-   :T [4 4 ]
-   :O [4 7 ]
+  {:I [4 1]
+   :T [4 4]
+   :O [4 7]
    :J [4 10]
    :L [4 13]
    :S [4 16]
@@ -49,16 +49,16 @@
   [:span
    {:key (str "piece" piece)
     :class (if (= piece (:piece app)) "active-row-534ed" "")
-    :onMouseEnter #(om/update! app :piece piece)
-    }
-    "["
+    :onMouseEnter #(om/update! app :piece piece)}
+
+   "["
     (for [[index [x y]] (map-indexed vector (pieces piece))]
-      [:span 
+      [:span
        {:key (str "piece" piece "index" index)
         :class (if (and (= piece (:piece app))
                         (= index (:index app))) "active-col-d9099")
-        :onMouseEnter #(om/update! app :index index)
-        }
+        :onMouseEnter #(om/update! app :index index)}
+
        (let [pad #(if (neg? %) % (str " " %))
              fmt #(sx/lit (pad %))]
          (list " [" (fmt x) " " (fmt y) "]"))])
@@ -86,9 +86,9 @@
          "\n\n"
          (when-let [p (:piece app)]
            (list (sx/cmt "; piece = " (str p)) "\n"
-           (when-let [i (:index app)]
-             (list (sx/cmt "; coord = " (str (nth (pieces p) i))) "\n"))))
-         ]]])))
+            (when-let [i (:index app)]
+              (list (sx/cmt "; coord = " (str (nth (pieces p) i))) "\n"))))]]])))
+
 
 (def cell-size (quot 600 rows))
 
@@ -131,17 +131,17 @@
         rs cell-size
         cx (* cell-size (+ x 0.5))
         cy (* cell-size (+ y 0.5))
-        cr (/ cell-size 4)
-        ]
+        cr (/ cell-size 4)]
+
     (.. ctx (fillRect rx ry rs rs))
     (.. ctx (strokeRect rx ry rs rs))
     (when is-center
       (.. ctx beginPath)
       (.. ctx (arc cx cy cr 0 (* 2 (.-PI js/Math))))
       (.. ctx fill)
-      (.. ctx stroke)
-      )
-    ))
+      (.. ctx stroke))))
+
+
 
 (defn draw-piece!
   [app ctx piece]
@@ -153,8 +153,8 @@
         (draw-cell! ctx c is-piece (= i index) (= c center))))
     (doseq [[i c] (map-indexed vector (piece-abs-coords piece))]
       (when (= i index)
-        (draw-cell! ctx c is-piece (= i index) (= c center))))
-    ))
+        (draw-cell! ctx c is-piece (= i index) (= c center))))))
+
 
 (defn draw-canvas!
   [app canvas]
@@ -164,8 +164,8 @@
     (.. ctx (fillRect 0 0 (* cell-size cols) (* cell-size rows)))
 
     (doseq [p piece-keys]
-      (draw-piece! app ctx p))
-    ))
+      (draw-piece! app ctx p))))
+
 
 (defcomponent canvas
   [app owner]
@@ -173,20 +173,20 @@
     (let [canvas (om/get-node owner "canvas")]
       (set! (.. canvas -width) (* cols cell-size))
       (set! (.. canvas -height) (* rows cell-size))
-      (draw-canvas! app (om/get-node owner "canvas"))
-      ))
+      (draw-canvas! app (om/get-node owner "canvas"))))
+
   (did-update [_ _ _]
-    (draw-canvas! app (om/get-node owner "canvas"))
-    )
+    (draw-canvas! app (om/get-node owner "canvas")))
+
   (render [_]
     (html
       [:div.canvas-2a4d7
        [:canvas
         {:ref "canvas"
          :style {:position "relative"}
-         :onMouseMove #(canvas-mouse app owner %)
-         }
-        ]])))
+         :onMouseMove #(canvas-mouse app owner %)}]])))
+
+
 
 (defcomponent slide
   [app owner]
@@ -206,9 +206,8 @@
     {:target (. js/document (getElementById id))}))
 
 (defn resume
-  []
-  )
+  [])
+
 
 (defn stop
-  []
-  )
+  [])
