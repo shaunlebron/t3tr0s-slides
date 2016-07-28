@@ -1,11 +1,13 @@
 (ns t3tr0s-slides.core
   (:require
-    [t3tr0s-slides.slide00 :as slide00]))
+    [t3tr0s-slides.slide00 :as slide00]
+    [t3tr0s-slides.slide01 :as slide01]))
 
 (enable-console-print!)
 
 (def slides
-  [{:id "slide00" :init slide00/init :resume slide00/resume :stop slide00/stop}])
+  [{:id "slide00" :init slide00/init :resume slide00/resume :stop slide00/stop}
+   {:id "slide01" :init slide01/init :resume slide01/resume :stop slide01/stop}])
 
 (def current-slide (atom nil))
 

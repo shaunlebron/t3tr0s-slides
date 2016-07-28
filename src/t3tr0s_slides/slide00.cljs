@@ -50,9 +50,9 @@
 
 (def initial-pos [4 6])
 
-(def app-state (atom {:board filled-board
-                      :piece (last (take 4 (iterate rotate-piece (:L pieces))))
-                      :position initial-pos}))
+(def app (atom {:board filled-board
+                :piece (last (take 4 (iterate rotate-piece (:L pieces))))
+                :position initial-pos}))
 
 (defn write-piece
   [board coords [cx cy]]
@@ -64,8 +64,8 @@
     board))
 
 (defn lock-piece! []
-  (let [{:keys [piece position]} @app-state]
-    (swap! app-state
+  (let [{:keys [piece position]} @app]
+    (swap! app
       update-in [:board]
         write-piece piece position)))
 
@@ -75,17 +75,8 @@
             (zero? (get-in board [(+ y cy) (+ x cx)])))
           piece))
 
-(defn app-piece-fits?
-  []
-  (boolean (piece-fits? (:board @app-state) (:piece @app-state) (:position @app-state))))
-
-(defn data-row
-  [row app]
-  [:span
-    "["
-    (for [col (range cols)]
-      (str " " (get-in @app-state [:board row col])))
-    " ]"])
+(defn app-piece-fits? []
+  (boolean (piece-fits? (:board @app) (:piece @app) (:position @app))))
 
 (rum/defc code []
   [:.code-cb62a
@@ -139,8 +130,7 @@
       (when-not (zero? v)
         (draw-cell! ctx [x y] false)))))
 
-(defn draw-canvas!
-  [app canvas]
+(defn draw-canvas! [canvas]
   (let [ctx (.. canvas (getContext "2d"))]
 
     (set! (.. ctx -fillStyle) "#222")
@@ -148,10 +138,10 @@
 
     (set! (.. ctx -fillStyle) dark-green)
     (set! (.. ctx -strokeStyle) light-green)
-    (draw-board! ctx (:board app))
+    (draw-board! ctx (:board @app))
 
-    (let [piece (:piece app)
-          pos (:position app)
+    (let [piece (:piece @app)
+          pos (:position @app)
           fits (app-piece-fits?)]
 
       (when (and piece pos)
@@ -165,11 +155,13 @@
      (let [canvas (rum/ref state "canvas")]
       (set! (.. canvas -width) (* cols cell-size))
       (set! (.. canvas -height) (* rows cell-size))
-      (draw-canvas! @app-state canvas)))
+      (draw-canvas! canvas)
+      state))
    :did-update
    (fn [state]
      (let [canvas (rum/ref state "canvas")]
-      (draw-canvas! @app-state canvas)))})
+      (draw-canvas! canvas)
+      state))})
 
 (rum/defc canvas < canvas-mixin []
   [:.canvas-2a4d7
@@ -189,7 +181,7 @@
 (defn init [id]
   (set! slide-elm (js/document.getElementById id))
   (render)
-  (add-watch app-state :render render))
+  (add-watch app :render render))
 
 (defn resume [])
 (defn stop [])
