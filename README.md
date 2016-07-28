@@ -1,6 +1,6 @@
 # Interactive Guide to Tetris in ClojureScript
 
-[VIEW SLIDES HERE](http://shaunlebron.github.io/t3tr0s-slides)
+__[>> View Slide Here](http://shaunlebron.github.io/t3tr0s-slides)__
 
 [![screen](http://fat.gfycat.com/ForthrightKindIggypops.gif)](http://shaunlebron.github.io/t3tr0s-slides)
 
@@ -10,20 +10,22 @@ party](http://www.meetup.com/houston-js/events/198371042/) celebrating Tetris's
 
 ## Setup
 
-1. Install [Leiningen](http://leiningen.org)
-1. Run `lein cljsbuild auto dev` to run the auto-compiler.
-1. Open `public/dev.html`.
-1. `Shift`+`Right|Left` to navigate slides.
+For viewing, serve the `public/` directory with something like:
 
-(for optimized production builds, use `lein cljsbuild auto min` and `public/index.html`)
+```
+$ cd public
+$ python -m SimpleHTTPServer
+```
 
-## Implementation
+For developing, use [npm-cljs](https://github.com/shaunlebron/npm-cljs):
 
-The presentation itself is written in ClojureScript using
-[Om/React](https://github.com/swannodette/om).  Its implementation is rushed.
-I duplicated a lot of functions and data between slides, and I'm using an Om
-"root" for every slide for some reason.  I also manually highlighted all the
-displayed code out of frustration with highlighting libraries.
+- `cljs watch dev`
+- <http://localhost:8000/dev.html>
+
+For minified release build:
+
+- `cljs build min`
+- <http://localhost:8000/>
 
 ## Why
 
@@ -52,4 +54,3 @@ And thanks to the T3TR0S team:
 - Chris Oakman
 - Brett Darnell
 - Phil Gambling
-
