@@ -1,5 +1,5 @@
 {:cljs-version "1.9.89"
- :dependencies [[org.clojure/core.async "0.2.374"]
+ :dependencies [[org.clojure/core.async "0.2.385"]
                 [rum "0.10.5"]]
 
  :builds {:dev {:src "src"
