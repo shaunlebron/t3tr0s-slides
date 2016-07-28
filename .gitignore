@@ -9,6 +9,11 @@ pom.xml
 .lein-plugins/
 
 public/t3tr0s_slides.js
+public/t3tr0s_slides.js.map
 public/t3tr0s_slides.min.js
+public/t3tr0s_slides.min.js.map
+public/out-dev
+
+.deps-cache.edn
 
 *.swp
