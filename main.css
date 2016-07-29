@@ -59,7 +59,7 @@ h1 {
 
   float: left;
   display: inline;
-  overflow: hidden;
+  overflow: auto;
 
   background-color: #333;
   color: #AAA;
@@ -88,6 +88,7 @@ h1 {
 .syntax-kw-18cc2   { color: #a6c; } /* clojure keywords */
 .syntax-lit-60e83  { color: #69c; } /* clojure literals (num,str) */
 .syntax-cmt-d159d  { color: #888; } /* clojure comments */
+.syntax-out-3c466  { color: #555; } /* clojure comments */
 
 .active-col-d9099 .syntax-core-4c264 { color: #000; } /* clojure core symbols */
 .active-col-d9099 .syntax-kw-18cc2   { color: #000; } /* clojure keywords */
