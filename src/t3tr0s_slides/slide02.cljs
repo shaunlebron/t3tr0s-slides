@@ -1,8 +1,6 @@
 (ns t3tr0s-slides.slide02
   (:require
-    [om.core :as om :include-macros true]
-    [om-tools.core :refer-macros [defcomponent]]
-    [sablono.core :refer-macros [html]]
+    [rum.core :as rum]
     [t3tr0s-slides.syntax-highlight :as sx]))
 
 
@@ -37,7 +35,7 @@
   (let [[cx cy] (positions piece)]
     (mapv (fn [[x y]] [(+ cx x) (+ cy y)]) (pieces piece))))
 
-(def app-state (atom {:piece nil :index nil}))
+(def app (atom {:piece nil :index nil}))
 
 (def rows 20)
 (def cols 10)
@@ -45,55 +43,49 @@
 (def empty-board (vec (repeat rows empty-row)))
 
 (defn data-row
-  [piece app]
+  [piece]
   [:span
    {:key (str "piece" piece)
-    :class (if (= piece (:piece app)) "active-row-534ed" "")
-    :onMouseEnter #(om/update! app :piece piece)}
+    :class (if (= piece (:piece @app)) "active-row-534ed" "")
+    :onMouseEnter #(swap! app assoc :piece piece)}
 
    "["
     (for [[index [x y]] (map-indexed vector (pieces piece))]
       [:span
        {:key (str "piece" piece "index" index)
-        :class (if (and (= piece (:piece app))
-                        (= index (:index app))) "active-col-d9099")
-        :onMouseEnter #(om/update! app :index index)}
+        :class (if (and (= piece (:piece @app))
+                        (= index (:index @app))) "active-col-d9099")
+        :onMouseEnter #(swap! app assoc :index index)}
 
        (let [pad #(if (neg? %) % (str " " %))
              fmt #(sx/lit (pad %))]
          (list " [" (fmt x) " " (fmt y) "]"))])
     " ]"])
 
-(defcomponent code
-  [app owner]
-  (render
-    [_]
-    (html
-      [:div.code-cb62a
-       [:pre
-        [:code
-         (sx/cmt "; TRY IT: mouse over the pieces.") "\n"
-         "\n"
-         "(" (sx/core "def") " pieces\n"
-         (let [ps piece-keys
-               first-p (first ps)
-               last-p (last ps)]
-           (for [p ps]
-             (condp = p
-               first-p    (list "  {" (sx/kw (str p)) " " (data-row p app) "\n")
-               last-p     (list "   " (sx/kw (str p)) " " (data-row p app) "})\n")
-                          (list "   " (sx/kw (str p)) " " (data-row p app) "\n"))))
-         "\n\n"
-         (when-let [p (:piece app)]
-           (list (sx/cmt "; piece = " (str p)) "\n"
-            (when-let [i (:index app)]
-              (list (sx/cmt "; coord = " (str (nth (pieces p) i))) "\n"))))]]])))
-
+(rum/defc code []
+  [:.code-cb62a
+   [:pre
+    [:code
+     (sx/cmt "; TRY IT: mouse over the pieces.") "\n"
+     "\n"
+     "(" (sx/core "def") " pieces\n"
+     (let [ps piece-keys
+           first-p (first ps)
+           last-p (last ps)]
+       (for [p ps]
+         (condp = p
+           first-p    (list "  {" (sx/kw (str p)) " " (data-row p) "\n")
+           last-p     (list "   " (sx/kw (str p)) " " (data-row p) "})\n")
+                      (list "   " (sx/kw (str p)) " " (data-row p) "\n"))))
+     "\n\n"
+     (when-let [p (:piece @app)]
+       (list (sx/cmt "; piece = " (str p)) "\n"
+        (when-let [i (:index @app)]
+          (list (sx/cmt "; coord = " (str (nth (pieces p) i))) "\n"))))]]])
 
 (def cell-size (quot 600 rows))
 
-(defn piece-index
-  [x y]
+(defn piece-index [x y]
   (some identity
         (map #(first (keep-indexed
                        (fn [i [px py]]
@@ -102,18 +94,19 @@
                        (piece-abs-coords %)))
              (keys pieces))))
 
-(defn canvas-mouse
-  [app owner e]
-  (let [canvas (om/get-node owner)
+(def global-canvas)
+
+(defn canvas-mouse [e]
+  (let [canvas global-canvas
         rect (.getBoundingClientRect canvas)
-        x (- (.-clientX e) (.-left rect) 20)
-        y (- (.-clientY e) (.-top rect) 20)
+        x (- (.-clientX e) (.-left rect))
+        y (- (.-clientY e) (.-top rect))
         col (quot x cell-size)
         row (quot y cell-size)
         [piece index] (piece-index col row)]
     (when (and piece index)
-      (om/update! app :piece piece)
-      (om/update! app :index index))))
+      (swap! app assoc :piece piece)
+      (swap! app assoc :index index))))
 
 (defn draw-cell!
   [ctx [x y] is-piece is-index is-center]
@@ -141,12 +134,9 @@
       (.. ctx fill)
       (.. ctx stroke))))
 
-
-
-(defn draw-piece!
-  [app ctx piece]
-  (let [is-piece (= piece (:piece app))
-        index (and is-piece (:index app))
+(defn draw-piece! [ctx piece]
+  (let [is-piece (= piece (:piece @app))
+        index (and is-piece (:index @app))
         center (positions piece)]
     (doseq [[i c] (map-indexed vector (piece-abs-coords piece))]
       (when-not (= i index)
@@ -155,59 +145,51 @@
       (when (= i index)
         (draw-cell! ctx c is-piece (= i index) (= c center))))))
 
-
-(defn draw-canvas!
-  [app canvas]
+(defn draw-canvas! [canvas]
   (let [ctx (.. canvas (getContext "2d"))]
 
     (set! (.. ctx -fillStyle) "#222")
     (.. ctx (fillRect 0 0 (* cell-size cols) (* cell-size rows)))
 
     (doseq [p piece-keys]
-      (draw-piece! app ctx p))))
+      (draw-piece! ctx p))))
 
-
-(defcomponent canvas
-  [app owner]
-  (did-mount [_]
-    (let [canvas (om/get-node owner "canvas")]
+(def canvas-mixin
+  {:did-mount
+   (fn [state]
+     (let [canvas (rum/ref state "canvas")]
+      (set! global-canvas canvas)
       (set! (.. canvas -width) (* cols cell-size))
       (set! (.. canvas -height) (* rows cell-size))
-      (draw-canvas! app (om/get-node owner "canvas"))))
+      (draw-canvas! canvas)
+      state))
+   :did-update
+   (fn [state]
+     (let [canvas (rum/ref state "canvas")]
+      (draw-canvas! canvas)
+      state))})
 
-  (did-update [_ _ _]
-    (draw-canvas! app (om/get-node owner "canvas")))
+(rum/defc canvas < canvas-mixin []
+  [:.canvas-2a4d7
+   [:canvas
+    {:ref "canvas"
+     :style {:position "relative"}
+     :onMouseMove canvas-mouse}]])
 
-  (render [_]
-    (html
-      [:div.canvas-2a4d7
-       [:canvas
-        {:ref "canvas"
-         :style {:position "relative"}
-         :onMouseMove #(canvas-mouse app owner %)}]])))
+(rum/defc slide []
+  [:div
+   [:h1 "2. Create the pieces."]
+   (code)
+   (canvas)])
 
+(def slide-elm)
+(defn render []
+  (rum/mount (slide) slide-elm))
 
+(defn init [id]
+  (set! slide-elm (js/document.getElementById id))
+  (render)
+  (add-watch app :render render))
 
-(defcomponent slide
-  [app owner]
-  (render
-    [_]
-    (html
-      [:div
-       [:h1 "2. Create the pieces."]
-       (om/build code app)
-       (om/build canvas app)])))
-
-(defn init
-  [id]
-  (om/root
-    slide
-    app-state
-    {:target (. js/document (getElementById id))}))
-
-(defn resume
-  [])
-
-
-(defn stop
-  [])
+(defn resume [])
+(defn stop [])
