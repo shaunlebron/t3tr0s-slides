@@ -4,6 +4,7 @@
     [t3tr0s-slides.slide01 :as slide01]
     [t3tr0s-slides.slide02 :as slide02]
     [t3tr0s-slides.slide03 :as slide03]
+    [t3tr0s-slides.slide04 :as slide04]
     [t3tr0s-slides.slide-wip :as slide-wip]))
 
 (enable-console-print!)
@@ -13,13 +14,13 @@
    {:id "slide01" :init slide01/init :resume slide01/resume :stop slide01/stop}
    {:id "slide02" :init slide02/init :resume slide02/resume :stop slide02/stop}
    {:id "slide03" :init slide03/init :resume slide03/resume :stop slide03/stop}
+   {:id "slide04" :init slide04/init :resume slide04/resume :stop slide04/stop}
    {:id "slide-wip" :init slide-wip/init :resume slide-wip/resume :stop slide-wip/stop}])
 
 (def current-slide (atom nil))
 
 (defn on-slide-change
   [_ _ i-prev i]
-  (println i)
 
   (when-not (= i-prev i)
 

@@ -1,10 +1,7 @@
 (ns t3tr0s-slides.slide04
   (:require
-    [om.core :as om :include-macros true]
-    [om-tools.core :refer-macros [defcomponent]]
-    [sablono.core :refer-macros [html]]
+    [rum.core :as rum]
     [t3tr0s-slides.syntax-highlight :as sx]))
-
 
 (def dark-green "#143")
 (def light-green "#175")
@@ -41,7 +38,7 @@
   (let [[cx cy] (positions piece)]
     (mapv (fn [[x y]] [(+ cx x) (+ cy y)]) piece)))
 
-(def app-state (atom {:piece nil
+(def app (atom {:piece nil
                       :index nil}))
 
 (def rows 20)
@@ -50,55 +47,50 @@
 (def empty-board (vec (repeat rows empty-row)))
 
 (defn piece-code
-  [piece pkey app]
+  [piece pkey]
   [:span
    {:key (str "piece" pkey)
-    :class (if (= piece (:piece app)) "active-row-534ed" "")
-    :onMouseEnter #(om/update! app :piece piece)}
+    :class (if (= piece (:piece @app)) "active-row-534ed" "")
+    :onMouseEnter #(swap! app assoc :piece piece)}
 
    "   ["
     (for [[index [x y]] (map-indexed vector piece)]
       [:span
        {:key (str "index" index)
-        :class (if (= index (:index app)) "active-col-d9099" "")
-        :onMouseEnter #(om/update! app :index index)}
+        :class (if (= index (:index @app)) "active-col-d9099" "")
+        :onMouseEnter #(swap! app assoc :index index)}
 
        (let [pad #(if (neg? %) % (str " " %))
              fmt #(sx/lit (pad %))]
          (list " [" (fmt x) " " (fmt y) "]"))])
     " ]"])
 
-(defcomponent code
-  [app owner]
-  (render
-    [_]
-    (html
-      [:div.code-cb62a
-       [:pre
-        [:code
-         "(" (sx/core "defn") " rotate-coord [[x y]]\n"
-         "  [ (- y) x ])\n"
-         "\n"
-         "(" (sx/core "defn") " rotate-piece [piece]\n"
-         "  (" (sx/core "mapv") " rotate-coord piece))\n"
-         "\n\n"
-         (sx/cmt "; TRY IT: mouse over the pieces.") "\n\n"
-         "> (" (sx/core "def") " r0 (:L pieces))\n"
-         "\n"
-         (piece-code r0 0 app) "\n"
-         "\n"
-         "> (" (sx/core "def") " r1 (rotate-piece r0))\n"
-         "\n"
-         (piece-code r1 1 app) "\n"
-         "\n"
-         "> (" (sx/core "def") " r2 (rotate-piece r1))\n"
-         "\n"
-         (piece-code r2 2 app) "\n"
-         "\n"
-         "> (" (sx/core "def") " r3 (rotate-piece r2))\n"
-         "\n"
-         (piece-code r3 3 app) "\n"]]])))
-
+(rum/defc code []
+  [:.code-cb62a
+   [:pre
+    [:code
+     "(" (sx/core "defn") " rotate-coord [[x y]]\n"
+     "  [ (- y) x ])\n"
+     "\n"
+     "(" (sx/core "defn") " rotate-piece [piece]\n"
+     "  (" (sx/core "mapv") " rotate-coord piece))\n"
+     "\n\n"
+     (sx/cmt "; TRY IT: mouse over the pieces.") "\n\n"
+     "> (" (sx/core "def") " r0 (:L pieces))\n"
+     "\n"
+     (piece-code r0 0) "\n"
+     "\n"
+     "> (" (sx/core "def") " r1 (rotate-piece r0))\n"
+     "\n"
+     (piece-code r1 1) "\n"
+     "\n"
+     "> (" (sx/core "def") " r2 (rotate-piece r1))\n"
+     "\n"
+     (piece-code r2 2) "\n"
+     "\n"
+     "> (" (sx/core "def") " r3 (rotate-piece r2))\n"
+     "\n"
+     (piece-code r3 3) "\n"]]])
 
 (def cell-size (quot 600 rows))
 
@@ -112,18 +104,18 @@
                        (piece-abs-coords %)))
              rotations)))
 
-(defn canvas-mouse
-  [app owner e]
-  (let [canvas (om/get-node owner)
+(def global-canvas)
+(defn canvas-mouse [e]
+  (let [canvas global-canvas
         rect (.getBoundingClientRect canvas)
-        x (- (.-clientX e) (.-left rect) 20)
-        y (- (.-clientY e) (.-top rect) 20)
+        x (- (.-clientX e) (.-left rect))
+        y (- (.-clientY e) (.-top rect))
         col (quot x cell-size)
         row (quot y cell-size)
         [piece index] (piece-index col row)]
     (when (and piece index)
-      (om/update! app :piece piece)
-      (om/update! app :index index))))
+      (swap! app assoc :piece piece)
+      (swap! app assoc :index index))))
 
 (defn draw-cell!
   [ctx [x y] is-piece is-index is-center]
@@ -151,12 +143,10 @@
       (.. ctx fill)
       (.. ctx stroke))))
 
-
-
 (defn draw-piece!
-  [app ctx piece]
-  (let [is-piece (= piece (:piece app))
-        index (:index app)
+  [ctx piece]
+  (let [is-piece (= piece (:piece @app))
+        index (:index @app)
         center (positions piece)]
     (doseq [[i c] (map-indexed vector (piece-abs-coords piece))]
       (when-not (= i index)
@@ -165,61 +155,54 @@
       (when (= i index)
         (draw-cell! ctx c is-piece (= i index) (= c center))))))
 
-
 (defn draw-canvas!
-  [app canvas]
+  [canvas]
   (let [ctx (.. canvas (getContext "2d"))]
 
     (set! (.. ctx -fillStyle) "#222")
     (.. ctx (fillRect 0 0 (* cell-size cols) (* cell-size rows)))
 
     (doseq [p rotations]
-      (draw-piece! app ctx p))))
+      (draw-piece! ctx p))))
 
-
-(defcomponent canvas
-  [app owner]
-  (did-mount [_]
-    (let [canvas (om/get-node owner "canvas")]
+(def canvas-mixin
+  {:did-mount
+   (fn [state]
+     (let [canvas (rum/ref state "canvas")]
+      (set! global-canvas canvas)
       (set! (.. canvas -width) (* cols cell-size))
       (set! (.. canvas -height) (* rows cell-size))
-      (draw-canvas! app (om/get-node owner "canvas"))))
+      (draw-canvas! canvas)
+      state))
+   :did-update
+   (fn [state]
+     (let [canvas (rum/ref state "canvas")]
+      (draw-canvas! canvas)
+      state))})
 
-  (did-update [_ _ _]
-    (draw-canvas! app (om/get-node owner "canvas")))
+(rum/defc canvas < canvas-mixin []
+  [:div.canvas-2a4d7
+   [:canvas
+    {:ref "canvas"
+     :style {:position "relative"}
+     :onMouseMove #(canvas-mouse %)
+     :onMouseLeave #(do (swap! app assoc :row nil)
+                        (swap! app assoc :col nil))}]])
 
-  (render [_]
-    (html
-      [:div.canvas-2a4d7
-       [:canvas
-        {:ref "canvas"
-         :style {:position "relative"}
-         :onMouseMove #(canvas-mouse app owner %)
-         :onMouseLeave #(do (om/update! app :row nil)
-                            (om/update! app :col nil))}]])))
+(rum/defc slide []
+  [:div
+   [:h1 "4. Rotate Piece."]
+   (code)
+   (canvas)])
 
+(def slide-elm)
+(defn render []
+  (rum/mount (slide) slide-elm))
 
+(defn init [id]
+  (set! slide-elm (js/document.getElementById id))
+  (render)
+  (add-watch app :render render))
 
-(defcomponent slide
-  [app owner]
-  (render
-    [_]
-    (html
-      [:div
-       [:h1 "4. Rotate Piece."]
-       (om/build code app)
-       (om/build canvas app)])))
-
-(defn init
-  [id]
-  (om/root
-    slide
-    app-state
-    {:target (. js/document (getElementById id))}))
-
-(defn resume
-  [])
-
-
-(defn stop
-  [])
+(defn resume [])
+(defn stop [])
