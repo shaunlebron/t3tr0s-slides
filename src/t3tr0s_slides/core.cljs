@@ -7,6 +7,7 @@
     [t3tr0s-slides.slide04 :as slide04]
     [t3tr0s-slides.slide05 :as slide05]
     [t3tr0s-slides.slide06 :as slide06]
+    [t3tr0s-slides.slide07 :as slide07]
     [t3tr0s-slides.slide-wip :as slide-wip]))
 
 (enable-console-print!)
@@ -19,6 +20,7 @@
    {:id "slide04" :init slide04/init :resume slide04/resume :stop slide04/stop}
    {:id "slide05" :init slide05/init :resume slide05/resume :stop slide05/stop}
    {:id "slide06" :init slide06/init :resume slide06/resume :stop slide06/stop}
+   {:id "slide07" :init slide07/init :resume slide07/resume :stop slide07/stop}
    {:id "slide-wip" :init slide-wip/init :resume slide-wip/resume :stop slide-wip/stop}])
 
 (def current-slide (atom nil))
