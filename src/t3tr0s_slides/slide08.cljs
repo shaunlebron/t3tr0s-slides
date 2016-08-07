@@ -1,10 +1,7 @@
 (ns t3tr0s-slides.slide08
   (:require
-    [om.core :as om :include-macros true]
-    [om-tools.core :refer-macros [defcomponent]]
-    [sablono.core :refer-macros [html]]
+    [rum.core :as rum]
     [t3tr0s-slides.syntax-highlight :as sx]))
-
 
 (def dark-green "#143")
 (def light-green "#175")
@@ -53,9 +50,9 @@
 
 (def initial-pos [4 6])
 
-(def app-state (atom {:board filled-board
-                      :piece (:T pieces)
-                      :position initial-pos}))
+(def app (atom {:board filled-board
+                :piece (:T pieces)
+                :position initial-pos}))
 
 (defn write-piece
   [board coords [cx cy]]
@@ -67,8 +64,8 @@
     board))
 
 (defn lock-piece! []
-  (let [{:keys [piece position]} @app-state]
-    (swap! app-state
+  (let [{:keys [piece position]} @app]
+    (swap! app
       update-in [:board]
         write-piece piece position)))
 
@@ -80,43 +77,39 @@
 
 (defn app-piece-fits?
   []
-  (boolean (piece-fits? (:board @app-state) (:piece @app-state) (:position @app-state))))
+  (boolean (piece-fits? (:board @app) (:piece @app) (:position @app))))
 
 (defn data-row
-  [row app]
+  [row]
   [:span
     "["
     (for [col (range cols)]
-      (str " " (get-in @app-state [:board row col])))
+      (str " " (get-in @app [:board row col])))
     " ]"])
 
-(defcomponent code
-  [app owner]
-  (render
-    [_]
-    (html
-      [:div.code-cb62a
-       [:pre
-        [:code
-         (sx/cmt "; TRY IT: move the piece on the right") "\n"
-         (sx/cmt ";         and click to rotate.") "\n"
-         "\n"
-         "(" (sx/core "defn") " piece-fits?\n"
-         "  [board piece [cx cy]]\n"
-         "  (" (sx/core "every?") "\n"
-         "    (" (sx/core "fn") " [[x y]]\n"
-         "      (" (sx/core "zero?") " (" (sx/core "get-in") " board [(" (sx/core "+") " y cy) (" (sx/core "+") " x cx)])))\n"
-         "    piece))\n"
-         "\n\n"
-         "> (piece-fits? (" (sx/kw ":board") " @game-state)\n"
-         "               (" (sx/kw ":piece") " @game-state)\n"
-         "               "(let [[x y] (:position @app-state)]
-                            (list "[" (sx/lit x) " " (sx/lit y) "]")) ")\n"
-         "\n"
-         "  " (let [fits? (app-piece-fits?)
-                    highlight (if fits? sx/lit sx/cmt)]
-                (highlight (str fits?))) "\n"
-         "\n"]]])))
+(rum/defc code []
+  [:.code-cb62a
+   [:pre
+    [:code
+     (sx/cmt "; TRY IT: move the piece on the right") "\n"
+     (sx/cmt ";         and click to rotate.") "\n"
+     "\n"
+     "(" (sx/core "defn") " piece-fits?\n"
+     "  [board piece [cx cy]]\n"
+     "  (" (sx/core "every?") "\n"
+     "    (" (sx/core "fn") " [[x y]]\n"
+     "      (" (sx/core "zero?") " (" (sx/core "get-in") " board [(" (sx/core "+") " y cy) (" (sx/core "+") " x cx)])))\n"
+     "    piece))\n"
+     "\n\n"
+     "> (piece-fits? (" (sx/kw ":board") " @game-state)\n"
+     "               (" (sx/kw ":piece") " @game-state)\n"
+     "               "(let [[x y] (:position @app)]
+                        (list "[" (sx/lit x) " " (sx/lit y) "]")) ")\n"
+     "\n"
+     "  " (let [fits? (app-piece-fits?)
+                highlight (if fits? sx/lit sx/cmt)]
+            (highlight (str fits?))) "\n"
+     "\n"]]])
 
 
 (def cell-size (quot 600 rows))
@@ -160,7 +153,7 @@
 
 
 (defn draw-canvas!
-  [app canvas]
+  [canvas]
   (let [ctx (.. canvas (getContext "2d"))]
 
     (set! (.. ctx -fillStyle) "#222")
@@ -168,10 +161,10 @@
 
     (set! (.. ctx -fillStyle) dark-green)
     (set! (.. ctx -strokeStyle) light-green)
-    (draw-board! ctx (:board app))
+    (draw-board! ctx (:board @app))
 
-    (let [piece (:piece app)
-          pos (:position app)
+    (let [piece (:piece @app)
+          pos (:position @app)
           fits (app-piece-fits?)]
 
       (when (and piece pos)
@@ -179,59 +172,54 @@
         (set! (.. ctx -strokeStyle) (if fits light-purple light-red))
         (draw-piece! ctx piece pos)))))
 
-
+(def global-canvas)
 (defn canvas-mouse
-  [app owner e]
-  (let [canvas (om/get-node owner)
+  [e]
+  (let [canvas global-canvas
         rect (.getBoundingClientRect canvas)
-        x (- (.-clientX e) (.-left rect) 20)
-        y (- (.-clientY e) (.-top rect) 20)
+        x (- (.-clientX e) (.-left rect))
+        y (- (.-clientY e) (.-top rect))
         col (quot x cell-size)
         row (quot y cell-size)]
-    (om/update! app :position [col row])))
+    (swap! app assoc :position [col row])))
 
-(defcomponent canvas
-  [app owner]
-  (did-mount [_]
-    (let [canvas (om/get-node owner "canvas")]
+(def canvas-mixin
+  {:did-mount
+   (fn [state]
+     (let [canvas (rum/ref state "canvas")]
+      (set! global-canvas canvas)
       (set! (.. canvas -width) (* cols cell-size))
       (set! (.. canvas -height) (* rows cell-size))
-      (draw-canvas! app (om/get-node owner "canvas"))))
+      (draw-canvas! canvas)
+      state))
+   :did-update
+   (fn [state]
+     (let [canvas (rum/ref state "canvas")]
+      (draw-canvas! canvas)
+      state))})
 
-  (did-update [_ _ _]
-    (draw-canvas! app (om/get-node owner "canvas")))
+(rum/defc canvas < canvas-mixin []
+  [:.canvas-2a4d7
+   [:canvas
+    {:ref "canvas"
+     :style {:position "relative"}
+     :onMouseDown #(swap! app update :piece rotate-piece)
+     :onMouseMove #(canvas-mouse %)}]])
 
-  (render [_]
-    (html
-      [:div.canvas-2a4d7
-       [:canvas
-        {:ref "canvas"
-         :style {:position "relative"}
-         :onMouseDown #(om/transact! app :piece rotate-piece)
-         :onMouseMove #(canvas-mouse app owner %)}]])))
+(rum/defc slide []
+  [:div
+   [:h1 "8. Detect collision."]
+   (code)
+   (canvas)])
 
+(def slide-elm)
+(defn render []
+  (rum/mount (slide) slide-elm))
 
+(defn init [id]
+  (set! slide-elm (js/document.getElementById id))
+  (render)
+  (add-watch app :render render))
 
-(defcomponent slide
-  [app owner]
-  (render
-    [_]
-    (html
-      [:div
-       [:h1 "8. Detect collision."]
-       (om/build code app)
-       (om/build canvas app)])))
-
-(defn init
-  [id]
-  (om/root
-    slide
-    app-state
-    {:target (. js/document (getElementById id))}))
-
-(defn resume
-  [])
-
-
-(defn stop
-  [])
+(defn resume [])
+(defn stop [])
