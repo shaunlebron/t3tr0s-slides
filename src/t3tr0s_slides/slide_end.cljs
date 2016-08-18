@@ -1,10 +1,7 @@
-(ns t3tr0s-slides.slide17
+(ns t3tr0s-slides.slide-end
   (:require
-    [om.core :as om :include-macros true]
-    [om-tools.core :refer-macros [defcomponent]]
-    [sablono.core :refer-macros [html]]
+    [rum.core :as rum]
     [t3tr0s-slides.syntax-highlight :as sx]))
-
 
 (def dark-green "#143")
 (def light-green "#175")
@@ -53,9 +50,9 @@
 
 (def initial-pos [4 6])
 
-(def app-state (atom {:board filled-board
-                      :piece (last (take 4 (iterate rotate-piece (:L pieces))))
-                      :position initial-pos}))
+(def app (atom {:board filled-board
+                :piece (last (take 4 (iterate rotate-piece (:L pieces))))
+                :position initial-pos}))
 
 (defn write-piece
   [board coords [cx cy]]
@@ -67,8 +64,8 @@
     board))
 
 (defn lock-piece! []
-  (let [{:keys [piece position]} @app-state]
-    (swap! app-state
+  (let [{:keys [piece position]} @app]
+    (swap! app
       update-in [:board]
         write-piece piece position)))
 
@@ -80,44 +77,39 @@
 
 (defn app-piece-fits?
   []
-  (boolean (piece-fits? (:board @app-state) (:piece @app-state) (:position @app-state))))
+  (boolean (piece-fits? (:board @app) (:piece @app) (:position @app))))
 
 (defn data-row
-  [row app]
+  [row]
   [:span
     "["
     (for [col (range cols)]
-      (str " " (get-in @app-state [:board row col])))
+      (str " " (get-in @app [:board row col])))
     " ]"])
 
-(defcomponent code
-  [app owner]
-  (render
-    [_]
-    (html
-      [:div.code-cb62a
-       [:pre
-        [:code
-         (sx/cmt ";; Well, that covers the main steps we followed") "\n"
-         (sx/cmt ";; when creating our full Tetris game.") "\n"
-         "\n"
-         (sx/cmt ";; Check out " (sx/kw [:a {:href "https://github.com/imalooney/t3tr0s"} "T3TR0S"]) " to learn even more!") "\n"
-         "\n"
-         (sx/cmt ";; Thanks to these cool people:") "\n"
-         "\n"
-         (sx/cmt ";;  - " (sx/lit "Elaine Looney")) "\n"
-         (sx/cmt ";;  - " (sx/lit "Luis Gutierrez")) "\n"
-         (sx/cmt ";;  - " (sx/lit "Chris Oakman")) "\n"
-         (sx/cmt ";;  - " (sx/lit "Brett Darnell")) "\n"
-         (sx/cmt ";;  - " (sx/lit "Phil Gambling")) "\n"
-         "\n\n"
-         (sx/cmt ";; Oh, and if you really want to look at the") "\n"
-         (sx/cmt ";; code for this presentation...") "\n"
-         (sx/cmt ";; ") (sx/out [:a {:href "https://github.com/shaunlebron/t3tr0s-slides"} "here it is."]) "\n"
-         "\n\n"
-         (sx/cmt ";; Thanks for reading!\n")
-         (sx/cmt ";; ") (sx/core [:a {:href "http://twitter.com/shaunlebron"} "@shaunlebron"]) "\n"]]])))
-
+(rum/defc code []
+  [:.code-cb62a
+   [:pre
+    [:code
+     (sx/cmt ";; Well, that covers the main steps we followed") "\n"
+     (sx/cmt ";; when creating our full Tetris game.") "\n"
+     "\n"
+     (sx/cmt ";; Check out " (sx/kw [:a {:href "https://github.com/imalooney/t3tr0s"} "T3TR0S"]) " to learn even more!") "\n"
+     "\n"
+     (sx/cmt ";; Thanks to these cool people:") "\n"
+     "\n"
+     (sx/cmt ";;  - " (sx/lit "Elaine Looney")) "\n"
+     (sx/cmt ";;  - " (sx/lit "Luis Gutierrez")) "\n"
+     (sx/cmt ";;  - " (sx/lit "Chris Oakman")) "\n"
+     (sx/cmt ";;  - " (sx/lit "Brett Darnell")) "\n"
+     (sx/cmt ";;  - " (sx/lit "Phil Gambling")) "\n"
+     "\n\n"
+     (sx/cmt ";; Oh, and if you really want to look at the") "\n"
+     (sx/cmt ";; code for this presentation...") "\n"
+     (sx/cmt ";; ") (sx/out [:a {:href "https://github.com/shaunlebron/t3tr0s-slides"} "here it is."]) "\n"
+     "\n\n"
+     (sx/cmt ";; Thanks for reading!\n")
+     (sx/cmt ";; ") (sx/core [:a {:href "http://twitter.com/shaunlebron"} "@shaunlebron"]) "\n"]]])
 
 (def cell-size (quot 600 rows))
 
@@ -160,7 +152,7 @@
 
 
 (defn draw-canvas!
-  [app canvas]
+  [canvas]
   (let [ctx (.. canvas (getContext "2d"))]
 
     (set! (.. ctx -fillStyle) "#222")
@@ -168,48 +160,42 @@
 
     (set! (.. ctx -fillStyle) dark-green)
     (set! (.. ctx -strokeStyle) light-green)
-    (draw-board! ctx (:board app))))
+    (draw-board! ctx (:board @app))))
 
-
-(defcomponent canvas
-  [app owner]
-  (did-mount [_]
-    (let [canvas (om/get-node owner "canvas")]
+(def canvas-mixin
+  {:did-mount
+   (fn [state]
+     (let [canvas (rum/ref state "canvas")]
       (set! (.. canvas -width) (* cols cell-size))
       (set! (.. canvas -height) (* rows cell-size))
-      (draw-canvas! app (om/get-node owner "canvas"))))
+      (draw-canvas! canvas)
+      state))
+   :did-update
+   (fn [state]
+     (let [canvas (rum/ref state "canvas")]
+      (draw-canvas! canvas)
+      state))})
 
-  (did-update [_ _ _]
-    (draw-canvas! app (om/get-node owner "canvas")))
+(rum/defc canvas < canvas-mixin []
+  [:.canvas-2a4d7
+   [:canvas
+    {:ref "canvas"
+     :style {:position "relative"}}]])
 
-  (render [_]
-    (html
-      [:div.canvas-2a4d7
-       [:canvas
-        {:ref "canvas"}]])))
+(rum/defc slide []
+  [:div
+   [:h1 "The end."]
+   (code)
+   (canvas)])
 
+(def slide-elm)
+(defn render []
+  (rum/mount (slide) slide-elm))
 
+(defn init [id]
+  (set! slide-elm (js/document.getElementById id))
+  (render)
+  (add-watch app :render render))
 
-(defcomponent slide
-  [app owner]
-  (render
-    [_]
-    (html
-      [:div
-       [:h1 "The end."]
-       (om/build code app)
-       (om/build canvas app)])))
-
-(defn init
-  [id]
-  (om/root
-    slide
-    app-state
-    {:target (. js/document (getElementById id))}))
-
-(defn resume
-  [])
-
-
-(defn stop
-  [])
+(defn resume [])
+(defn stop [])
