@@ -3,11 +3,8 @@
     [cljs.core.async.macros :refer [go go-loop]])
   (:require
     [cljs.core.async :refer [put! take! close! <! >! alts! chan timeout]]
-    [om.core :as om :include-macros true]
-    [om-tools.core :refer-macros [defcomponent]]
-    [sablono.core :refer-macros [html]]
+    [rum.core :as rum]
     [t3tr0s-slides.syntax-highlight :as sx]))
-
 
 (def dark-green "#143")
 (def light-green "#175")
@@ -56,9 +53,9 @@
 
 (def initial-pos [5 2])
 
-(def app-state (atom {:board filled-board
-                      :piece (rotate-piece (:I pieces))
-                      :position initial-pos}))
+(def app (atom {:board filled-board
+                :piece (rotate-piece (:I pieces))
+                :position initial-pos}))
 
 (defn write-piece
   [board coords [cx cy] value]
@@ -81,14 +78,14 @@
 
 (defn app-drawable-board!
   []
-  (let [board (:board @app-state)
-        piece (:piece @app-state)
-        pos (:position @app-state)]
+  (let [board (:board @app)
+        piece (:piece @app)
+        pos (:position @app)]
     (create-drawable-board board piece pos)))
 
 (defn lock-piece! []
-  (let [{:keys [piece position]} @app-state]
-    (swap! app-state
+  (let [{:keys [piece position]} @app]
+    (swap! app
       update-in [:board]
         write-piece piece position 1)))
 
@@ -100,23 +97,23 @@
 
 (defn app-piece-fits?
   []
-  (boolean (piece-fits? (:board @app-state) (:piece @app-state) (:position @app-state))))
+  (boolean (piece-fits? (:board @app) (:piece @app) (:position @app))))
 
 (defn try-shift! [dx]
-  (when-let [piece (:piece @app-state)]
-    (let[[x y] (:position @app-state)
-         board (:board @app-state)
+  (when-let [piece (:piece @app)]
+    (let[[x y] (:position @app)
+         board (:board @app)
          new-pos [(+ x dx) y]]
       (when (piece-fits? board piece new-pos)
-        (swap! app-state assoc :position new-pos)))))
+        (swap! app assoc :position new-pos)))))
 
 (defn try-rotate! []
-  (when-let [piece (:piece @app-state)]
-    (let [pos (:position @app-state)
-          board (:board @app-state)
+  (when-let [piece (:piece @app)]
+    (let [pos (:position @app)
+          board (:board @app)
           new-piece (rotate-piece piece)]
       (when (piece-fits? board new-piece pos)
-        (swap! app-state assoc :piece new-piece)))))
+        (swap! app assoc :piece new-piece)))))
 
 (defn get-drop-pos
   [board piece [x y]]
@@ -147,72 +144,49 @@
         (fn [i row]
           (if (rows i) empty-row row)) board)))
 
-(def resume-state (atom nil))
-(def prev-filled (atom nil))
-(def prev-cleared (atom nil))
-(def prev-collapsed (atom nil))
-(def anim-index (atom nil))
-
-(defn on-change-anim-index
-  [_ _ _ i]
-  (when i
-    (reset! app-state (get [@prev-cleared
-                            @prev-filled
-                            @prev-cleared
-                            @prev-collapsed] i))))
-
-(add-watch anim-index :history on-change-anim-index)
-
-
 (defn go-go-collapse! []
 
-  (let [board     (:board @app-state)
+  (let [board     (:board @app)
         rows      (filled-rows board)
+        filled    board
         cleared   (clear-rows board rows)
         collapsed (collapse-rows board rows)]
-
-    (reset! prev-filled    (assoc @app-state :board board))
-    (reset! prev-cleared   (assoc @app-state :board cleared))
-    (reset! prev-collapsed (assoc @app-state :board collapsed))
 
     (go
       (dotimes [i 3]
 
-        (reset! anim-index 0)
+        (swap! app assoc :board cleared)
         (<! (timeout 170))
 
-        (reset! anim-index 1)
+        (swap! app assoc :board filled)
         (<! (timeout 170)))
 
-      (reset! anim-index 2)
+      (swap! app assoc :board cleared)
       (<! (timeout 220))
 
-      (reset! anim-index 3)
-      (<! (timeout 170))
-
-      (reset! anim-index nil))))
-
+      (swap! app assoc :board collapsed)
+      (<! (timeout 170)))))
 
 (defn spawn-piece!
   []
-  (swap! app-state assoc
+  (swap! app assoc
          :position initial-pos
          :piece (rand-nth (vals pieces))))
 
 (defn hard-drop! []
-  (when-let [piece (:piece @app-state)]
-    (let [[x y] (:position @app-state)
-          board (:board @app-state)
+  (when-let [piece (:piece @app)]
+    (let [[x y] (:position @app)
+          board (:board @app)
           ny (get-drop-pos board piece [x y])]
-      (swap! app-state assoc :position [x ny])
+      (swap! app assoc :position [x ny])
       (lock-piece!)
 
-      (let [board (:board @app-state)
+      (let [board (:board @app)
             rows (filled-rows board)]
         (if (empty? rows)
           (spawn-piece!)
           (do
-            (swap! app-state assoc
+            (swap! app assoc
                    :piece nil
                    :position nil)
             (go
@@ -220,57 +194,10 @@
               (spawn-piece!))))))))
 
 
-(defn data-row
-  [index content]
-  [:span
-   {:class (if (= @anim-index index) "active-row-534ed" "")
-    :onMouseEnter
-    (fn []
-      (when (nil? @anim-index)
-        (reset! resume-state @app-state))
-      (when @prev-filled
-        (reset! anim-index index)))}
-   content])
-
-(defcomponent code
-  [app owner]
-  (render
-    [_]
-    (html
-      [:div.code-cb62a
-       [:pre
-        [:code
-         "(" (sx/core "defn") " clear-rows\n"
-         "  [board rows]\n"
-         "  (" (sx/core "vec") " (" (sx/core "map-indexed") "\n"
-         "   (" (sx/core "fn") " [i row]\n"
-         "     (" (sx/core "if") " (rows i) empty-row row)) board)))\n"
-         "\n"
-         "(" (sx/core "defn") " go-go-collapse! []\n"
-         "\n"
-         "  (" (sx/core "let") " [board     (" (sx/lit ":board") " @game-state)\n"
-         "        rows      (filled-rows board)\n"
-         "        cleared   (clear-rows board rows)\n"
-         "        collapsed (collapse-rows board rows)]\n"
-         "\n"
-         (sx/cmt "; TRY IT: knock out some rows on the right,") "\n"
-         (sx/cmt ";         then mouse over states below.") "\n"
-         (sx/cmt ";         Press \"R\" to resume.") "\n"
-         "\n"
-         "    (" (sx/kw "go") "\n"
-         "      (" (sx/core "dotimes") " [_ " (sx/lit "3") "]\n"
-         "\n"
-         "        " (data-row 0 (list "(" (sx/core "swap!") " game-state " (sx/core "assoc") " " (sx/lit ":board") " cleared)")) "\n"
-         "        (" (sx/kw "<!") " (" (sx/kw "timeout") " " (sx/lit "170") "))\n"
-         "\n"
-         "        " (data-row 1 (list "(" (sx/core "swap!") " game-state " (sx/core "assoc") " " (sx/lit ":board") " board)")) "\n"
-         "        (" (sx/kw "<!") " (" (sx/kw "timeout") " " (sx/lit "170") ")))\n"
-         "\n"
-         "      " (data-row 2 (list "(" (sx/core "swap!") " game-state " (sx/core "assoc") " " (sx/lit ":board") " cleared)")) "\n"
-         "      (" (sx/kw "<!") " (" (sx/kw "timeout") " " (sx/lit "220") "))\n"
-         "\n"
-         "      " (data-row 3 (list "(" (sx/core "swap!") " game-state " (sx/core "assoc") " " (sx/lit ":board") " collapsed)")) ")))\n"]]])))
-
+(rum/defc code []
+  [:.code-cb62a
+   [:pre
+    [:code]]])
 
 (def cell-size (quot 600 nrows))
 
@@ -292,8 +219,6 @@
       (.. ctx fill)
       (.. ctx stroke))))
 
-
-
 (defn piece-abs-coords
   [piece [cx cy]]
   (mapv (fn [[x y]] [(+ cx x) (+ cy y)]) piece))
@@ -313,9 +238,8 @@
         (when-not (zero? v)
           (draw-cell! ctx [x y] false))))))
 
-
 (defn draw-canvas!
-  [app canvas]
+  [canvas]
   (let [ctx (.. canvas (getContext "2d"))]
 
     (set! (.. ctx -fillStyle) "#222")
@@ -323,12 +247,12 @@
 
     (set! (.. ctx -fillStyle)   dark-green)
     (set! (.. ctx -strokeStyle) light-green)
-    (draw-board! ctx (:board app))
+    (draw-board! ctx (:board @app))
     (set! (.. ctx -globalAlpha) 1)
 
-    (when-let [piece (:piece app)]
-      (let [pos (:position app)
-            drop-y (get-drop-pos (:board @app-state) piece pos)
+    (when-let [piece (:piece @app)]
+      (let [pos (:position @app)
+            drop-y (get-drop-pos (:board @app) piece pos)
             drop-pos (assoc pos 1 drop-y)
             fits (app-piece-fits?)]
 
@@ -340,7 +264,6 @@
           (set! (.. ctx -strokeStyle) (if fits light-purple light-red))
           (draw-piece! ctx piece pos))))))
 
-
 (def key-names
   {37 :left
    38 :up
@@ -351,13 +274,9 @@
 
 (def key-name #(-> % .-keyCode key-names))
 
-(defn resume-control!
-  []
-  (when (and (not (nil? @anim-index))
-             (not (nil? @resume-state)))
-    (reset! app-state @resume-state)
-    (reset! resume-state nil)
-    (reset! anim-index nil)))
+(defn start-gravity! [])
+(defn stop-gravity! [])
+(defn restart! [])
 
 (defn key-down [e]
   (let [kname (key-name e)]
@@ -366,53 +285,50 @@
      :right (try-shift! 1)
      :up    (try-rotate!)
      :space (hard-drop!)
-     :r     (resume-control!)
+     :r     (restart!)
      nil)
    (when (#{:down :left :right :space :up} kname)
      (.preventDefault e))))
 
-(defcomponent canvas
-  [app owner]
-  (did-mount [_]
-    (let [canvas (om/get-node owner "canvas")]
+(def canvas-mixin
+  {:did-mount
+   (fn [state]
+     (let [canvas (rum/ref state "canvas")]
       (set! (.. canvas -width) (* ncols cell-size))
       (set! (.. canvas -height) (* nrows cell-size))
-      (draw-canvas! app (om/get-node owner "canvas"))))
+      (draw-canvas! canvas)
+      state))
+   :did-update
+   (fn [state]
+     (let [canvas (rum/ref state "canvas")]
+      (draw-canvas! canvas)
+      state))})
 
-  (did-update [_ _ _]
-    (draw-canvas! app (om/get-node owner "canvas")))
+(rum/defc canvas < canvas-mixin []
+  [:.canvas-2a4d7
+   [:canvas
+    {:ref "canvas"
+     :style {:position "relative"}}]])
 
-  (render [_]
-    (html
-      [:div.canvas-2a4d7
-       [:canvas
-        {:ref "canvas"
-         :style {:position "relative"}}]])))
+(rum/defc slide []
+  [:div
+   [:h1 "15. Add gravity."]
+   (code)
+   (canvas)])
 
+(def slide-elm)
+(defn render []
+  (rum/mount (slide) slide-elm))
 
+(defn init [id]
+  (set! slide-elm (js/document.getElementById id))
+  (render)
+  (add-watch app :render render))
 
-(defcomponent slide
-  [app owner]
-  (render
-    [_]
-    (html
-      [:div
-       [:h1 "15. Add gravity."]
-       (om/build code app)
-       (om/build canvas app)])))
+(defn resume []
+  (.addEventListener js/window "keydown" key-down)
+  (start-gravity!))
 
-(defn init
-  [id]
-  (om/root
-    slide
-    app-state
-    {:target (. js/document (getElementById id))}))
-
-(defn resume
-  []
-  (.addEventListener js/window "keydown" key-down))
-
-
-(defn stop
-  []
-  (.removeEventListener js/window "keydown" key-down))
+(defn stop []
+  (.removeEventListener js/window "keydown" key-down)
+  (stop-gravity!))
