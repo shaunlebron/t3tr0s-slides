@@ -157,8 +157,6 @@
       (.. ctx fill)
       (.. ctx stroke))))
 
-
-
 (defn piece-abs-coords
   [piece [cx cy]]
   (mapv (fn [[x y]] [(+ cx x) (+ cy y)]) piece))

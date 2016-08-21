@@ -80,19 +80,16 @@
   (boolean (piece-fits? (:board @app) (:piece @app) (:position @app))))
 
 (defn try-shift! [dx]
-  (let [piece (:piece @app)
-        [x y] (:position @app)
-        board (:board @app)
+  (let [{:keys [piece board position]} @app
+        [x y] position
         new-pos [(+ x dx) y]]
     (when (piece-fits? board piece new-pos)
       (swap! app assoc :position new-pos))))
 
 (defn try-rotate! []
-  (let [piece (:piece @app)
-        pos (:position @app)
-        board (:board @app)
+  (let [{:keys [piece board position]} @app
         new-piece (rotate-piece piece)]
-    (when (piece-fits? board new-piece pos)
+    (when (piece-fits? board new-piece position)
       (swap! app assoc :piece new-piece))))
 
 (defn spawn-piece! []
@@ -100,34 +97,43 @@
                    :piece (rand-nth (vals pieces))))
 
 (defn try-drop! []
-  (let [piece (:piece @app)]
-    (when-not (piece-fits? board piece new-pos))))
+  (let [{:keys [piece board position]} @app
+        [x y] position
+        new-pos [x (inc y)]]
+    (if (piece-fits? board piece new-pos)
+      (swap! app assoc :position new-pos)
+      (do (lock-piece!) (spawn-piece!)))))
 
 (rum/defc code []
   [:.code-cb62a
    [:pre
     [:code
-     (sx/cmt "; TRY IT: Press " (sx/lit "Left/Right") " to call this function.") "\n"
+     (sx/cmt "; TRY IT: press " (sx/lit "Left/Right") " to move.") "\n"
+     (sx/cmt ";         press " (sx/lit "Up") " to rotate.") "\n"
+     (sx/cmt ";         press " (sx/lit "Down") " to drop.") "\n"
+     ; TODO: highlight this when Left/Right is pressed
      "\n"
      "(" (sx/core "defn") " try-shift! [dx]\n"
-     "  (" (sx/core "let") " [piece (" (sx/kw ":piece") " @game-state)\n"
-     "        [x y] (" (sx/kw ":position") " @game-state)\n"
-     "        board (" (sx/kw ":board") " @game-state)\n"
+     "  (" (sx/core "let") " [{" (sx/kw ":keys") " [piece board position]} @game-state\n"
+     "        [x y] position\n"
      "        new-pos [(" (sx/core "+") " x dx) y]]\n"
      "    (" (sx/core "when") " (piece-fits? board piece new-pos)\n"
-     "      (" (sx/core "swap!") " game-state assoc " (sx/kw ":position") " new-pos))))\n"
-     "\n\n"
-     (sx/cmt "; TRY IT: Press " (sx/lit "Up") " to call this function.") "\n"
+     "      (" (sx/core "swap!") " game-state " (sx/core "assoc") " " (sx/kw ":position") " new-pos))))\n"
      "\n"
+     ; TODO: highlight this when Up is pressed
      "(" (sx/core "defn") " try-rotate! []\n"
-     "  (" (sx/core "let") " [piece (" (sx/kw ":piece") " @game-state)\n"
-     "        pos (" (sx/kw ":position") " @game-state)\n"
-     "        board (" (sx/kw ":board") " @game-state)\n"
+     "  (" (sx/core "let") " [{" (sx/kw ":keys") " [piece board position]} @game-state\n"
      "        new-piece (rotate-piece piece)]\n"
-     "    (" (sx/core "when") " (piece-fits? board new-piece pos)\n"
-     "      (" (sx/core "swap!") " game-state assoc " (sx/kw ":piece") " new-piece))))\n"
-     "\n\n"]]])
-
+     "    (" (sx/core "when") " (piece-fits? board new-piece position)\n"
+     "      (" (sx/core "swap!") " game-state " (sx/core "assoc") " " (sx/kw ":piece") " new-piece))))\n"
+     "\n"
+     ; TODO: split this into a separate slide called "10. Add soft drop"
+     "(" (sx/core "defn") " try-drop! []\n"
+     "  (" (sx/core "let") " [{" (sx/kw ":keys") " [piece board position]} @game-state\n"
+     "        [x y] position\n"
+     "        new-pos [x (" (sx/core "inc") " y)]\n"
+     "    (" (sx/core "if") " (piece-fits? board piece new-pos)\n"
+     "      (" (sx/core "swap!") " game-state " (sx/core "assoc") " " (sx/kw ":position") " new-pos))))\n"]]])
 
 (def cell-size (quot 600 rows))
 
@@ -201,6 +207,7 @@
    (case kname
      :left  (try-shift! -1)
      :right (try-shift! 1)
+     :down (try-drop!)
      :up    (try-rotate!)
      nil)
    (when (#{:down :left :right :space :up} kname)
