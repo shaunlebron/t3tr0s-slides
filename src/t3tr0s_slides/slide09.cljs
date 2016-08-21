@@ -95,26 +95,19 @@
     (when (piece-fits? board new-piece pos)
       (swap! app assoc :piece new-piece))))
 
-(defn get-drop-pos
-  [board piece [x y]]
-  (let [collide? (fn [cy] (not (piece-fits? board piece [x cy])))
-        cy (first (filter collide? (iterate inc y)))]
-    (max y (dec cy))))
+(defn spawn-piece! []
+  (swap! app assoc :position initial-pos
+                   :piece (rand-nth (vals pieces))))
 
-(defn hard-drop! []
-  (let [piece (:piece @app)
-        [x y] (:position @app)
-        board (:board @app)
-        ny (get-drop-pos board piece [x y])]
-    (swap! app assoc :position [x ny])
-    (lock-piece!)))
+(defn try-drop! []
+  (let [piece (:piece @app)]
+    (when-not (piece-fits? board piece new-pos))))
 
 (rum/defc code []
   [:.code-cb62a
    [:pre
     [:code
-     (sx/cmt "; TRY IT: press left/right to move.") "\n"
-     (sx/cmt ";         press up to rotate.") "\n"
+     (sx/cmt "; TRY IT: Press " (sx/lit "Left/Right") " to call this function.") "\n"
      "\n"
      "(" (sx/core "defn") " try-shift! [dx]\n"
      "  (" (sx/core "let") " [piece (" (sx/kw ":piece") " @game-state)\n"
@@ -124,6 +117,8 @@
      "    (" (sx/core "when") " (piece-fits? board piece new-pos)\n"
      "      (" (sx/core "swap!") " game-state assoc " (sx/kw ":position") " new-pos))))\n"
      "\n\n"
+     (sx/cmt "; TRY IT: Press " (sx/lit "Up") " to call this function.") "\n"
+     "\n"
      "(" (sx/core "defn") " try-rotate! []\n"
      "  (" (sx/core "let") " [piece (" (sx/kw ":piece") " @game-state)\n"
      "        pos (" (sx/kw ":position") " @game-state)\n"
@@ -233,7 +228,7 @@
 
 (rum/defc slide []
   [:div
-   [:h1 "9. Constrain controls."]
+   [:h1 "9. Add key controls."]
    (code)
    (canvas)])
 

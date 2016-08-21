@@ -101,6 +101,10 @@
         cy (first (filter collide? (iterate inc y)))]
     (max y (dec cy))))
 
+(defn spawn-piece! []
+  (swap! app assoc :position initial-pos
+                   :piece (rand-nth (vals pieces))))
+
 (defn hard-drop! []
   (let [piece (:piece @app)
         [x y] (:position @app)
@@ -108,16 +112,15 @@
         ny (get-drop-pos board piece [x y])]
     (swap! app assoc :position [x ny])
     (lock-piece!)
-    (swap! app assoc :position initial-pos
-                           :piece (rand-nth (vals pieces)))))
+    (spawn-piece!)))
 
 (rum/defc code []
   [:.code-cb62a
    [:pre
     [:code
-     (sx/cmt "; TRY IT: press space to hard-drop.") "\n"
-     (sx/cmt ";         press left/right to move.") "\n"
-     (sx/cmt ";         press up to rotate.") "\n"
+     (sx/cmt "; TRY IT: press " (sx/lit "Space") " to hard-drop.") "\n"
+     (sx/cmt ";         press Left/Right to move.") "\n"
+     (sx/cmt ";         press Up to rotate.") "\n"
      "\n"
      "(" (sx/core "defn") " get-drop-pos\n"
      "  [board piece [x y]]\n"
