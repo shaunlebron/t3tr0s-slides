@@ -65,7 +65,10 @@
         fmt #(sx/lit (pad %))
         fmt-coord (fn [[x y]]
                     (list "[" (fmt x) " " (fmt y) "]"))]
-    (interpose " " (map fmt-coord piece))))
+    (list
+      " [ "
+      (interpose " " (map fmt-coord piece))
+      " ] ")))
 
 
 (defn position-code []
