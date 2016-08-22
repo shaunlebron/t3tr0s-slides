@@ -56,7 +56,9 @@
 (def app (atom {:board filled-board
                 :piece (:T pieces)
                 :position initial-pos
-                :active-block nil}))
+                :active-block nil
+                :active-id {"spawn" 0
+                            "soft" 0}}))
 
 (defn write-piece
   [board coords [cx cy]]
@@ -206,9 +208,12 @@
     (when-not (and (= block "soft") (= active "spawn"))
       (go
         (swap! app assoc :active-block block)
-        (<! (timeout (if (= block "spawn") 750 250)))
-        (let [active (:active-block @app)]
-          (when (= active block)
+        (swap! app update-in [:active-id block] inc)
+        (let [current-block #(get-in @app [:active-id block])
+              i (current-block)]
+          (<! (timeout (if (= block "spawn") 750 250)))
+          (when (and (= i (current-block))
+                     (= (:active-block @app) block))
             (swap! app assoc :active-block nil)))))))
 
 (defn key-down [e]

@@ -56,7 +56,9 @@
 (def app (atom {:board filled-board
                 :piece (:T pieces)
                 :position initial-pos
-                :active-block? #{}}))
+                :active-block? #{}
+                :active-id {"shift" 0
+                            "rotate" 0}}))
 
 (defn write-piece
   [board coords [cx cy]]
@@ -202,8 +204,12 @@
 (defn flash-active-block! [block]
   (go
     (swap! app update :active-block? conj block)
-    (<! (timeout 250))
-    (swap! app update :active-block? disj block)))
+    (swap! app update-in [:active-id block] inc)
+    (let [current-block #(get-in @app [:active-id block])
+          i (current-block)]
+      (<! (timeout 250))
+      (when (= i (current-block))
+        (swap! app update :active-block? disj block)))))
 
 (defn key-down [e]
   (let [kname (key-name e)]
