@@ -253,6 +253,7 @@
      :left  (try-shift! -1)
      :right (try-shift! 1)
      :up    (try-rotate!)
+     :down  (soft-drop!)
      :space (hard-drop!)
      nil)
    (when (#{:down :left :right :space :up} kname)
