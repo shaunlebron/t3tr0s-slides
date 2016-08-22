@@ -1,5 +1,8 @@
 (ns t3tr0s-slides.slide09
+  (:require-macros
+    [cljs.core.async.macros :refer [go go-loop]])
   (:require
+    [cljs.core.async :refer [put! take! close! <! >! alts! chan timeout]]
     [rum.core :as rum]
     [t3tr0s-slides.syntax-highlight :as sx]))
 
@@ -52,7 +55,8 @@
 
 (def app (atom {:board filled-board
                 :piece (:T pieces)
-                :position initial-pos}))
+                :position initial-pos
+                :active-block? #{}}))
 
 (defn write-piece
   [board coords [cx cy]]
@@ -105,27 +109,29 @@
       (do (lock-piece!) (spawn-piece!)))))
 
 (rum/defc code []
-  [:.code-cb62a
-   [:pre
-    [:code
-     (sx/cmt "; TRY IT: press left/right to move." "\n")
-     (sx/cmt ";         press up to rotate." "\n")
-     ; TODO: highlight this when Left/Right is pressed
-     "\n"
-     "(" (sx/core "defn") " try-shift! [dx]\n"
-     "  (" (sx/core "let") " [{" (sx/kw ":keys") " [piece board position]} @game-state\n"
-     "        [x y] position\n"
-     "        new-pos [(" (sx/core "+") " x dx) y]]\n"
-     "    (" (sx/core "when") " (piece-fits? board piece new-pos)\n"
-     "      (" (sx/core "swap!") " game-state " (sx/core "assoc") " " (sx/kw ":position") " new-pos))))\n"
-     "\n"
-     ; TODO: highlight this when Up is pressed
-     "(" (sx/core "defn") " try-rotate! []\n"
-     "  (" (sx/core "let") " [{" (sx/kw ":keys") " [piece board position]} @game-state\n"
-     "        new-piece (rotate-piece piece)]\n"
-     "    (" (sx/core "when") " (piece-fits? board new-piece position)\n"
-     "      (" (sx/core "swap!") " game-state " (sx/core "assoc") " " (sx/kw ":piece") " new-piece))))\n"
-     "\n"]]])
+  (let [shift-class (if ((:active-block? @app) "shift") "active-row-534ed" "")
+        rotate-class (if ((:active-block? @app) "rotate") "active-row-534ed" "")]
+    [:.code-cb62a
+     [:pre
+      [:code
+       (sx/cmt "; TRY IT: press left/right to move." "\n")
+       (sx/cmt ";         press up to rotate." "\n")
+       "\n"
+       [:div {:class shift-class}
+         "(" (sx/core "defn") " try-shift! [dx]\n"
+         "  (" (sx/core "let") " [{" (sx/kw ":keys") " [piece board position]} @game-state\n"
+         "        [x y] position\n"
+         "        new-pos [(" (sx/core "+") " x dx) y]]\n"
+         "    (" (sx/core "when") " (piece-fits? board piece new-pos)\n"
+         "      (" (sx/core "swap!") " game-state " (sx/core "assoc") " " (sx/kw ":position") " new-pos))))\n"]
+       "\n"
+       [:div {:class rotate-class}
+         "(" (sx/core "defn") " try-rotate! []\n"
+         "  (" (sx/core "let") " [{" (sx/kw ":keys") " [piece board position]} @game-state\n"
+         "        new-piece (rotate-piece piece)]\n"
+         "    (" (sx/core "when") " (piece-fits? board new-piece position)\n"
+         "      (" (sx/core "swap!") " game-state " (sx/core "assoc") " " (sx/kw ":piece") " new-piece))))\n"]
+       "\n"]]]))
 
 (def cell-size (quot 600 rows))
 
@@ -184,7 +190,6 @@
         (set! (.. ctx -strokeStyle) (if fits light-purple light-red))
         (draw-piece! ctx piece pos)))))
 
-
 (def key-names
   {37 :left
    38 :up
@@ -194,12 +199,18 @@
 
 (def key-name #(-> % .-keyCode key-names))
 
+(defn flash-active-block! [block]
+  (go
+    (swap! app update :active-block? conj block)
+    (<! (timeout 250))
+    (swap! app update :active-block? disj block)))
+
 (defn key-down [e]
   (let [kname (key-name e)]
    (case kname
-     :left  (try-shift! -1)
-     :right (try-shift! 1)
-     :up    (try-rotate!)
+     :left  (do (flash-active-block! "shift") (try-shift! -1))
+     :right (do (flash-active-block! "shift") (try-shift! 1))
+     :up    (do (flash-active-block! "rotate") (try-rotate!))
      nil)
    (when (#{:down :left :right :space :up} kname)
      (.preventDefault e))))

@@ -1,5 +1,8 @@
 (ns t3tr0s-slides.slide10
+  (:require-macros
+    [cljs.core.async.macros :refer [go go-loop]])
   (:require
+    [cljs.core.async :refer [put! take! close! <! >! alts! chan timeout]]
     [rum.core :as rum]
     [t3tr0s-slides.syntax-highlight :as sx]))
 
@@ -52,7 +55,8 @@
 
 (def app (atom {:board filled-board
                 :piece (:T pieces)
-                :position initial-pos}))
+                :position initial-pos
+                :active-block nil}))
 
 (defn write-piece
   [board coords [cx cy]]
@@ -92,7 +96,10 @@
     (when (piece-fits? board new-piece position)
       (swap! app assoc :piece new-piece))))
 
+(declare flash-active-block!)
+
 (defn spawn-piece! []
+  (flash-active-block! "spawn")
   (swap! app assoc :position initial-pos
                    :piece (rand-nth (vals pieces))))
 
@@ -105,25 +112,27 @@
       (do (lock-piece!) (spawn-piece!)))))
 
 (rum/defc code []
-  [:.code-cb62a
-   [:pre
-    [:code
-     (sx/cmt "; TRY IT: press down to drop.") "\n"
-     "\n"
-     ; TODO: highlight this when Down is pressed
-     "(" (sx/core "defn") " soft-drop! []\n"
-     "  (" (sx/core "let") " [{" (sx/kw ":keys") " [piece board position]} @game-state\n"
-     "        [x y] position\n"
-     "        new-pos [x (" (sx/core "inc") " y)]\n"
-     "    (" (sx/core "if") " (piece-fits? board piece new-pos)\n"
-     "      (" (sx/core "swap!") " game-state " (sx/core "assoc") " " (sx/kw ":position") " new-pos))))\n"
-     "      (" (sx/core "do") " (lock-piece!) (spawn-piece!))\n" ; highlight spawn-piece! when spawned
-     "\n"
-     ; TODO: highlight this when spawned
-     "(" (sx/core "defn") " spawn-piece! []\n"
-     "  (" (sx/core "swap!") " game-state " (sx/core "assoc") "\n"
-     "    " (sx/kw ":position") " initial-pos\n"
-     "    " (sx/kw ":piece") " (" (sx/core "rand-nth") " (" (sx/core "vals") " pieces))))\n"]]])
+  (let [spawn-class (if (= (:active-block @app) "spawn") "active-row-534ed" "")
+        soft-class (if (= (:active-block @app) "soft") "active-row-534ed" "")]
+    [:.code-cb62a
+     [:pre
+      [:code
+       (sx/cmt "; TRY IT: press down to drop.") "\n"
+       "\n"
+       [:div {:class spawn-class}
+         "(" (sx/core "defn") " spawn-piece! []\n"
+         "  (" (sx/core "swap!") " game-state " (sx/core "assoc") "\n"
+         "    " (sx/kw ":position") " initial-pos\n"
+         "    " (sx/kw ":piece") " (" (sx/core "rand-nth") " (" (sx/core "vals") " pieces))))\n"]
+       "\n"
+       [:div {:class soft-class}
+         "(" (sx/core "defn") " soft-drop! []\n"
+         "  (" (sx/core "let") " [{" (sx/kw ":keys") " [piece board position]} @game-state\n"
+         "        [x y] position\n"
+         "        new-pos [x (" (sx/core "inc") " y)]\n"
+         "    (" (sx/core "if") " (piece-fits? board piece new-pos)\n"
+         "      (" (sx/core "swap!") " game-state " (sx/core "assoc") " " (sx/kw ":position") " new-pos))))\n"
+         "      (" (sx/core "do") " (lock-piece!) (spawn-piece!)\n"]]]]))
 
 (def cell-size (quot 600 rows))
 
@@ -192,13 +201,23 @@
 
 (def key-name #(-> % .-keyCode key-names))
 
+(defn flash-active-block! [block]
+  (let [active (:active-block @app)]
+    (when-not (and (= block "soft") (= active "spawn"))
+      (go
+        (swap! app assoc :active-block block)
+        (<! (timeout (if (= block "spawn") 750 250)))
+        (let [active (:active-block @app)]
+          (when (= active block)
+            (swap! app assoc :active-block nil)))))))
+
 (defn key-down [e]
   (let [kname (key-name e)]
    (case kname
      :left  (try-shift! -1)
      :right (try-shift! 1)
      :up    (try-rotate!)
-     :down (soft-drop!)
+     :down  (do (flash-active-block! "soft") (soft-drop!))
      nil)
    (when (#{:down :left :right :space :up} kname)
      (.preventDefault e))))

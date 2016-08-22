@@ -1,5 +1,8 @@
 (ns t3tr0s-slides.slide11
+  (:require-macros
+    [cljs.core.async.macros :refer [go go-loop]])
   (:require
+    [cljs.core.async :refer [put! take! close! <! >! alts! chan timeout]]
     [rum.core :as rum]
     [t3tr0s-slides.syntax-highlight :as sx]))
 
@@ -52,7 +55,8 @@
 
 (def app (atom {:board filled-board
                 :piece (:T pieces)
-                :position initial-pos}))
+                :position initial-pos
+                :active-block nil}))
 
 (defn write-piece
   [board coords [cx cy]]
@@ -123,25 +127,27 @@
     (spawn-piece!)))
 
 (rum/defc code []
-  [:.code-cb62a
-   [:pre
-    [:code
-     (sx/cmt "; TRY IT: press space to hard-drop.") "\n"
-     "\n"
-     "(" (sx/core "defn") " get-drop-pos\n"
-     "  [board piece [x y]]\n"
-     "  (" (sx/core "let") " [clear? #(piece-fits? board piece [x %]))\n"
-     "        cy (" (sx/core "first") " (" (sx/core "remove") " clear? (" (sx/core "iterate") " " (sx/core "inc") " y)))]\n"
-     "    (" (sx/core "max") " y (" (sx/core "dec") " cy))))\n"
-     "\n\n"
-     "(" (sx/core "defn") " hard-drop! []\n"
-     "  (" (sx/core "let") " [piece (" (sx/kw ":piece") " @app)\n"
-     "        [x y] (" (sx/kw ":position") " @app)\n"
-     "        board (:board @app)\n"
-     "        ny (get-drop-pos board piece [x y])]\n"
-     "    (" (sx/core "swap!") " @app " (sx/core "assoc") " " (sx/kw ":position") " [x ny])\n"
-     "    (lock-piece!)))\n"
-     "\n\n"]]])
+  (let [hard-class (if (= (:active-block @app) "hard") "active-row-534ed" "")]
+    [:.code-cb62a
+     [:pre
+      [:code
+       (sx/cmt "; TRY IT: press space to hard-drop.") "\n"
+       "\n"
+       "(" (sx/core "defn") " get-drop-pos\n"
+       "  [board piece [x y]]\n"
+       "  (" (sx/core "let") " [clear? #(piece-fits? board piece [x %]))\n"
+       "        cy (" (sx/core "first") " (" (sx/core "remove") " clear? (" (sx/core "iterate") " " (sx/core "inc") " y)))]\n"
+       "    (" (sx/core "max") " y (" (sx/core "dec") " cy))))\n"
+       "\n\n"
+       [:div {:class hard-class}
+         "(" (sx/core "defn") " hard-drop! []\n"
+         "  (" (sx/core "let") " [piece (" (sx/kw ":piece") " @app)\n"
+         "        [x y] (" (sx/kw ":position") " @app)\n"
+         "        board (:board @app)\n"
+         "        ny (get-drop-pos board piece [x y])]\n"
+         "    (" (sx/core "swap!") " @app " (sx/core "assoc") " " (sx/kw ":position") " [x ny])\n"
+         "    (lock-piece!)))\n"]
+       "\n\n"]]]))
 
 (def cell-size (quot 600 rows))
 
@@ -208,6 +214,12 @@
 
 (def key-name #(-> % .-keyCode key-names))
 
+(defn flash-active-block! [block]
+  (go
+    (swap! app assoc :active-block block)
+    (<! (timeout 500))
+    (swap! app assoc :active-block nil)))
+
 (defn key-down [e]
   (let [kname (key-name e)]
    (case kname
@@ -215,7 +227,7 @@
      :right (try-shift! 1)
      :up    (try-rotate!)
      :down  (soft-drop!)
-     :space (hard-drop!)
+     :space (do (flash-active-block! "hard") (hard-drop!))
      nil)
    (when (#{:down :left :right :space :up} kname)
      (.preventDefault e))))
