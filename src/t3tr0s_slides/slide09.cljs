@@ -108,9 +108,8 @@
   [:.code-cb62a
    [:pre
     [:code
-     (sx/cmt "; TRY IT: press " (sx/lit "Left/Right") " to move.") "\n"
-     (sx/cmt ";         press " (sx/lit "Up") " to rotate.") "\n"
-     (sx/cmt ";         press " (sx/lit "Down") " to drop.") "\n"
+     (sx/cmt "; TRY IT: press left/right to move." "\n")
+     (sx/cmt ";         press up to rotate." "\n")
      ; TODO: highlight this when Left/Right is pressed
      "\n"
      "(" (sx/core "defn") " try-shift! [dx]\n"
@@ -126,14 +125,7 @@
      "        new-piece (rotate-piece piece)]\n"
      "    (" (sx/core "when") " (piece-fits? board new-piece position)\n"
      "      (" (sx/core "swap!") " game-state " (sx/core "assoc") " " (sx/kw ":piece") " new-piece))))\n"
-     "\n"
-     ; TODO: split this into a separate slide called "10. Add soft drop"
-     "(" (sx/core "defn") " try-drop! []\n"
-     "  (" (sx/core "let") " [{" (sx/kw ":keys") " [piece board position]} @game-state\n"
-     "        [x y] position\n"
-     "        new-pos [x (" (sx/core "inc") " y)]\n"
-     "    (" (sx/core "if") " (piece-fits? board piece new-pos)\n"
-     "      (" (sx/core "swap!") " game-state " (sx/core "assoc") " " (sx/kw ":position") " new-pos))))\n"]]])
+     "\n"]]])
 
 (def cell-size (quot 600 rows))
 
@@ -207,7 +199,6 @@
    (case kname
      :left  (try-shift! -1)
      :right (try-shift! 1)
-     :down (try-drop!)
      :up    (try-rotate!)
      nil)
    (when (#{:down :left :right :space :up} kname)
@@ -235,7 +226,7 @@
 
 (rum/defc slide []
   [:div
-   [:h1 "9. Add key controls."]
+   [:h1 "9. Add and constrain movement."]
    (code)
    (canvas)])
 

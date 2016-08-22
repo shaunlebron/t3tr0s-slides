@@ -80,62 +80,50 @@
   (boolean (piece-fits? (:board @app) (:piece @app) (:position @app))))
 
 (defn try-shift! [dx]
-  (let [piece (:piece @app)
-        [x y] (:position @app)
-        board (:board @app)
+  (let [{:keys [piece board position]} @app
+        [x y] position
         new-pos [(+ x dx) y]]
     (when (piece-fits? board piece new-pos)
       (swap! app assoc :position new-pos))))
 
 (defn try-rotate! []
-  (let [piece (:piece @app)
-        pos (:position @app)
-        board (:board @app)
+  (let [{:keys [piece board position]} @app
         new-piece (rotate-piece piece)]
-    (when (piece-fits? board new-piece pos)
+    (when (piece-fits? board new-piece position)
       (swap! app assoc :piece new-piece))))
-
-(defn get-drop-pos
-  [board piece [x y]]
-  (let [collide? (fn [cy] (not (piece-fits? board piece [x cy])))
-        cy (first (filter collide? (iterate inc y)))]
-    (max y (dec cy))))
 
 (defn spawn-piece! []
   (swap! app assoc :position initial-pos
                    :piece (rand-nth (vals pieces))))
 
-(defn hard-drop! []
-  (let [piece (:piece @app)
-        [x y] (:position @app)
-        board (:board @app)
-        ny (get-drop-pos board piece [x y])]
-    (swap! app assoc :position [x ny])
-    (lock-piece!)
-    (spawn-piece!)))
+(defn soft-drop! []
+  (let [{:keys [piece board position]} @app
+        [x y] position
+        new-pos [x (inc y)]]
+    (if (piece-fits? board piece new-pos)
+      (swap! app assoc :position new-pos)
+      (do (lock-piece!) (spawn-piece!)))))
 
 (rum/defc code []
   [:.code-cb62a
    [:pre
     [:code
-     (sx/cmt "; TRY IT: press " (sx/lit "Space") " to hard-drop.") "\n"
-     (sx/cmt ";         press Left/Right to move.") "\n"
-     (sx/cmt ";         press Up to rotate.") "\n"
+     (sx/cmt "; TRY IT: press down to drop.") "\n"
      "\n"
-     "(" (sx/core "defn") " get-drop-pos\n"
-     "  [board piece [x y]]\n"
-     "  (" (sx/core "let") " [clear? #(piece-fits? board piece [x %]))\n"
-     "        cy (" (sx/core "first") " (" (sx/core "remove") " clear? (" (sx/core "iterate") " " (sx/core "inc") " y)))]\n"
-     "    (" (sx/core "max") " y (" (sx/core "dec") " cy))))\n"
-     "\n\n"
-     "(" (sx/core "defn") " hard-drop! []\n"
-     "  (" (sx/core "let") " [piece (" (sx/kw ":piece") " @app)\n"
-     "        [x y] (" (sx/kw ":position") " @app)\n"
-     "        board (:board @app)\n"
-     "        ny (get-drop-pos board piece [x y])]\n"
-     "    (" (sx/core "swap!") " @app " (sx/core "assoc") " " (sx/kw ":position") " [x ny])\n"
-     "    (lock-piece!)))\n"
-     "\n\n"]]])
+     ; TODO: highlight this when Down is pressed
+     "(" (sx/core "defn") " soft-drop! []\n"
+     "  (" (sx/core "let") " [{" (sx/kw ":keys") " [piece board position]} @game-state\n"
+     "        [x y] position\n"
+     "        new-pos [x (" (sx/core "inc") " y)]\n"
+     "    (" (sx/core "if") " (piece-fits? board piece new-pos)\n"
+     "      (" (sx/core "swap!") " game-state " (sx/core "assoc") " " (sx/kw ":position") " new-pos))))\n"
+     "      (" (sx/core "do") " (lock-piece!) (spawn-piece!))\n" ; highlight spawn-piece! when spawned
+     "\n"
+     ; TODO: highlight this when spawned
+     "(" (sx/core "defn") " spawn-piece! []\n"
+     "  (" (sx/core "swap!") " game-state " (sx/core "assoc") "\n"
+     "    " (sx/kw ":position") " initial-pos\n"
+     "    " (sx/kw ":piece") " (" (sx/core "rand-nth") " (" (sx/core "vals") " pieces))))\n"]]])
 
 (def cell-size (quot 600 rows))
 
@@ -174,7 +162,8 @@
       (when-not (zero? v)
         (draw-cell! ctx [x y] false)))))
 
-(defn draw-canvas! [canvas]
+(defn draw-canvas!
+  [canvas]
   (let [ctx (.. canvas (getContext "2d"))]
 
     (set! (.. ctx -fillStyle) "#222")
@@ -193,6 +182,7 @@
         (set! (.. ctx -strokeStyle) (if fits light-purple light-red))
         (draw-piece! ctx piece pos)))))
 
+
 (def key-names
   {37 :left
    38 :up
@@ -208,7 +198,7 @@
      :left  (try-shift! -1)
      :right (try-shift! 1)
      :up    (try-rotate!)
-     :space (hard-drop!)
+     :down (soft-drop!)
      nil)
    (when (#{:down :left :right :space :up} kname)
      (.preventDefault e))))
@@ -235,7 +225,7 @@
 
 (rum/defc slide []
   [:div
-   [:h1 "10. Add hard-drop."]
+   [:h1 "10. Add soft drop and spawn."]
    (code)
    (canvas)])
 

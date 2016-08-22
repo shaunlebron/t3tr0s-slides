@@ -55,36 +55,19 @@
                 :position initial-pos}))
 
 (defn write-piece
-  [board coords [cx cy] value]
+  [board coords [cx cy]]
   (if-let [[x y] (first coords)]
-    (recur (try (assoc-in board [(+ y cy) (+ x cx)] value)
+    (recur (try (assoc-in board [(+ y cy) (+ x cx)] 1)
                 (catch js/Error _ board))
            (rest coords)
-           [cx cy]
-           value)
+           [cx cy])
     board))
-
-(declare get-drop-pos)
-
-(defn create-drawable-board
-  [board piece [x y]]
-  (let [gy    (get-drop-pos board  piece [x y])]
-    (-> board
-        (write-piece piece [x gy] "G")
-        (write-piece piece [x y ] "P"))))
-
-(defn app-drawable-board!
-  []
-  (let [board (:board @app)
-        piece (:piece @app)
-        pos (:position @app)]
-    (create-drawable-board board piece pos)))
 
 (defn lock-piece! []
   (let [{:keys [piece position]} @app]
     (swap! app
       update-in [:board]
-        write-piece piece position 1)))
+        write-piece piece position)))
 
 (defn piece-fits?
   [board piece [cx cy]]
@@ -118,6 +101,18 @@
         cy (first (filter collide? (iterate inc y)))]
     (max y (dec cy))))
 
+(defn spawn-piece! []
+  (swap! app assoc :position initial-pos
+                   :piece (rand-nth (vals pieces))))
+
+(defn soft-drop! []
+  (let [{:keys [piece board position]} @app
+        [x y] position
+        new-pos [x (inc y)]]
+    (if (piece-fits? board piece new-pos)
+      (swap! app assoc :position new-pos)
+      (do (lock-piece!) (spawn-piece!)))))
+
 (defn hard-drop! []
   (let [piece (:piece @app)
         [x y] (:position @app)
@@ -125,45 +120,28 @@
         ny (get-drop-pos board piece [x y])]
     (swap! app assoc :position [x ny])
     (lock-piece!)
-    (swap! app assoc :position initial-pos
-                           :piece (rand-nth (vals pieces)))))
-
-(defn data-row
-  [board row]
-  [:span
-    "["
-    (for [col (range cols)]
-      (let [x (get-in board [row col])
-            highlight ({0   sx/out
-                        1   sx/core
-                        "P" sx/lit
-                        "G" sx/cmt} x)]
-        (list " " (highlight x))))
-    " ]"])
+    (spawn-piece!)))
 
 (rum/defc code []
   [:.code-cb62a
    [:pre
     [:code
      (sx/cmt "; TRY IT: press space to hard-drop.") "\n"
-     (sx/cmt ";         press left/right to move.") "\n"
-     (sx/cmt ";         press up to rotate.") "\n"
      "\n"
-     "(" (sx/core "defn") " create-drawable-board\n"
+     "(" (sx/core "defn") " get-drop-pos\n"
      "  [board piece [x y]]\n"
-     "  (" (sx/core "let") " [gy    (get-drop-pos board piece [x y])]\n"
-     "    (" (sx/core "->") " board\n"
-     "        (write-piece piece [x gy] " (sx/lit "\"G\"") ")\n"
-     "        (write-piece piece [x y ] " (sx/lit "\"P\"") "))))\n"
-     "\n"
-     "> (create-drawable-board ...)\n"
-     "\n"
-     (let [board (app-drawable-board!)]
-       (for [row (range rows)]
-         (condp = row
-           0          (list "  [" (data-row board row) "\n")
-           (dec rows) (list "   " (data-row board row) "])\n")
-           (list "   " (data-row board row) "\n"))))]]])
+     "  (" (sx/core "let") " [clear? #(piece-fits? board piece [x %]))\n"
+     "        cy (" (sx/core "first") " (" (sx/core "remove") " clear? (" (sx/core "iterate") " " (sx/core "inc") " y)))]\n"
+     "    (" (sx/core "max") " y (" (sx/core "dec") " cy))))\n"
+     "\n\n"
+     "(" (sx/core "defn") " hard-drop! []\n"
+     "  (" (sx/core "let") " [piece (" (sx/kw ":piece") " @app)\n"
+     "        [x y] (" (sx/kw ":position") " @app)\n"
+     "        board (:board @app)\n"
+     "        ny (get-drop-pos board piece [x y])]\n"
+     "    (" (sx/core "swap!") " @app " (sx/core "assoc") " " (sx/kw ":position") " [x ny])\n"
+     "    (lock-piece!)))\n"
+     "\n\n"]]])
 
 (def cell-size (quot 600 rows))
 
@@ -214,18 +192,12 @@
 
     (let [piece (:piece @app)
           pos (:position @app)
-          drop-y (get-drop-pos (:board @app) piece pos)
-          drop-pos (assoc pos 1 drop-y)
           fits (app-piece-fits?)]
 
       (when (and piece pos)
-        (set! (.. ctx -fillStyle)   "#333")
-        (set! (.. ctx -strokeStyle) "#666")
-        (draw-piece! ctx piece drop-pos)
         (set! (.. ctx -fillStyle)   (if fits dark-purple dark-red))
         (set! (.. ctx -strokeStyle) (if fits light-purple light-red))
         (draw-piece! ctx piece pos)))))
-
 
 (def key-names
   {37 :left
@@ -242,6 +214,7 @@
      :left  (try-shift! -1)
      :right (try-shift! 1)
      :up    (try-rotate!)
+     :down  (soft-drop!)
      :space (hard-drop!)
      nil)
    (when (#{:down :left :right :space :up} kname)
@@ -269,7 +242,7 @@
 
 (rum/defc slide []
   [:div
-   [:h1 "11. Draw ghost piece."]
+   [:h1 "11. Add hard-drop."]
    (code)
    (canvas)])
 

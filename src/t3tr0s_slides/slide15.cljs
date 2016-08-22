@@ -144,60 +144,130 @@
         (fn [i row]
           (if (rows i) empty-row row)) board)))
 
-(defn go-go-collapse! []
+(def resume-state (atom nil))
+(def prev-filled (atom nil))
+(def prev-cleared (atom nil))
+(def prev-collapsed (atom nil))
+(def anim-index (atom nil))
 
+(defn on-change-anim-index
+  [_ _ _ i]
+  (when i
+    (reset! app (get [@prev-cleared
+                      @prev-filled
+                      @prev-cleared
+                      @prev-collapsed] i))))
+
+(add-watch anim-index :history on-change-anim-index)
+
+(defn go-go-collapse! []
   (let [board     (:board @app)
         rows      (filled-rows board)
-        filled    board
         cleared   (clear-rows board rows)
         collapsed (collapse-rows board rows)]
+
+    (reset! prev-filled    (assoc @app :board board))
+    (reset! prev-cleared   (assoc @app :board cleared))
+    (reset! prev-collapsed (assoc @app :board collapsed))
 
     (go
       (dotimes [i 3]
 
-        (swap! app assoc :board cleared)
+        (reset! anim-index 0)
         (<! (timeout 170))
 
-        (swap! app assoc :board filled)
+        (reset! anim-index 1)
         (<! (timeout 170)))
 
-      (swap! app assoc :board cleared)
+      (reset! anim-index 2)
       (<! (timeout 220))
 
-      (swap! app assoc :board collapsed)
-      (<! (timeout 170)))))
+      (reset! anim-index 3)
+      (<! (timeout 170))
 
-(defn spawn-piece!
-  []
+      (reset! anim-index nil))))
+
+
+(defn spawn-piece! []
+  (swap! app assoc :position initial-pos
+                   :piece (rand-nth (vals pieces))))
+
+(defn clear-piece! []
   (swap! app assoc
-         :position initial-pos
-         :piece (rand-nth (vals pieces))))
+         :piece nil
+         :position nil))
+
+(defn piece-done! []
+  (go
+    (lock-piece!)
+    (clear-piece!)
+    (when (seq (filled-rows (:board @app)))
+      (<! (go-go-collapse!)))
+    (spawn-piece!)))
+
+(defn soft-drop! []
+  (let [{:keys [piece board position]} @app
+        [x y] position
+        new-pos [x (inc y)]]
+    (if (piece-fits? board piece new-pos)
+      (swap! app assoc :position new-pos)
+      (piece-done!))))
 
 (defn hard-drop! []
-  (when-let [piece (:piece @app)]
-    (let [[x y] (:position @app)
-          board (:board @app)
-          ny (get-drop-pos board piece [x y])]
-      (swap! app assoc :position [x ny])
-      (lock-piece!)
+  (let [piece (:piece @app)
+        [x y] (:position @app)
+        board (:board @app)
+        ny (get-drop-pos board piece [x y])]
+    (swap! app assoc :position [x ny])
+    (piece-done!)))
 
-      (let [board (:board @app)
-            rows (filled-rows board)]
-        (if (empty? rows)
-          (spawn-piece!)
-          (do
-            (swap! app assoc
-                   :piece nil
-                   :position nil)
-            (go
-              (<! (go-go-collapse!))
-              (spawn-piece!))))))))
-
+(defn data-row
+  [index content]
+  [:span
+   {:class (if (= @anim-index index) "active-row-534ed" "")
+    :onMouseEnter
+    (fn []
+      (when (nil? @anim-index)
+        (reset! resume-state @app))
+      (when @prev-filled
+        (reset! anim-index index)))}
+   content])
 
 (rum/defc code []
   [:.code-cb62a
    [:pre
-    [:code]]])
+    [:code
+     "(" (sx/core "defn") " clear-rows\n"
+     "  [board rows]\n"
+     "  (" (sx/core "vec") " (" (sx/core "map-indexed") "\n"
+     "         (" (sx/core "fn") " [i row] (" (sx/core "if") " (rows i) empty-row row))\n"
+     "         board)))\n"
+     "\n"
+     "(" (sx/core "defn") " go-go-collapse! []\n"
+     "\n"
+     "  (" (sx/core "let") " [board     (" (sx/lit ":board") " @game-state)\n"
+     "        rows      (filled-rows board)\n"
+     "        cleared   (clear-rows board rows)\n"
+     "        collapsed (collapse-rows board rows)]\n"
+     "\n"
+     (sx/cmt "; TRY IT: knock out some rows on the right,") "\n"
+     (sx/cmt ";         then mouse over states below.") "\n"
+     (sx/cmt ";         Press \"R\" to resume.") "\n"
+     "\n"
+     "    (" (sx/kw "go") "\n"
+     "      (" (sx/core "dotimes") " [_ " (sx/lit "3") "]\n"
+     "\n"
+     "        " (data-row 0 (list "(" (sx/core "swap!") " game-state " (sx/core "assoc") " " (sx/lit ":board") " cleared)")) "\n"
+     "        (" (sx/kw "<!") " (" (sx/kw "timeout") " " (sx/lit "170") "))\n"
+     "\n"
+     "        " (data-row 1 (list "(" (sx/core "swap!") " game-state " (sx/core "assoc") " " (sx/lit ":board") " board)")) "\n"
+     "        (" (sx/kw "<!") " (" (sx/kw "timeout") " " (sx/lit "170") ")))\n"
+     "\n"
+     "      " (data-row 2 (list "(" (sx/core "swap!") " game-state " (sx/core "assoc") " " (sx/lit ":board") " cleared)")) "\n"
+     "      (" (sx/kw "<!") " (" (sx/kw "timeout") " " (sx/lit "220") "))\n"
+     "\n"
+     "      " (data-row 3 (list "(" (sx/core "swap!") " game-state " (sx/core "assoc") " " (sx/lit ":board") " collapsed)")) ")))\n"]]])
+
 
 (def cell-size (quot 600 nrows))
 
@@ -219,6 +289,8 @@
       (.. ctx fill)
       (.. ctx stroke))))
 
+
+
 (defn piece-abs-coords
   [piece [cx cy]]
   (mapv (fn [[x y]] [(+ cx x) (+ cy y)]) piece))
@@ -237,6 +309,7 @@
       (let [v (get-in board [y x])]
         (when-not (zero? v)
           (draw-cell! ctx [x y] false))))))
+
 
 (defn draw-canvas!
   [canvas]
@@ -264,6 +337,7 @@
           (set! (.. ctx -strokeStyle) (if fits light-purple light-red))
           (draw-piece! ctx piece pos))))))
 
+
 (def key-names
   {37 :left
    38 :up
@@ -274,18 +348,24 @@
 
 (def key-name #(-> % .-keyCode key-names))
 
-(defn start-gravity! [])
-(defn stop-gravity! [])
-(defn restart! [])
+(defn resume-control!
+  []
+  (when (and (not (nil? @anim-index))
+             (not (nil? @resume-state)))
+    (reset! app @resume-state)
+    (reset! resume-state nil)
+    (reset! anim-index nil)))
 
 (defn key-down [e]
-  (let [kname (key-name e)]
+  (let [kname (key-name e)
+        piece (:piece @app)]
    (case kname
-     :left  (try-shift! -1)
-     :right (try-shift! 1)
-     :up    (try-rotate!)
-     :space (hard-drop!)
-     :r     (restart!)
+     :left  (when piece (try-shift! -1))
+     :right (when piece (try-shift! 1))
+     :up    (when piece (try-rotate!))
+     :down  (when piece (soft-drop!))
+     :space (when piece (hard-drop!))
+     :r     (resume-control!)
      nil)
    (when (#{:down :left :right :space :up} kname)
      (.preventDefault e))))
@@ -312,7 +392,7 @@
 
 (rum/defc slide []
   [:div
-   [:h1 "15. Add gravity."]
+   [:h1 "15. Animate collapse."]
    (code)
    (canvas)])
 
@@ -326,9 +406,7 @@
   (add-watch app :render render))
 
 (defn resume []
-  (.addEventListener js/window "keydown" key-down)
-  (start-gravity!))
+  (.addEventListener js/window "keydown" key-down))
 
 (defn stop []
-  (.removeEventListener js/window "keydown" key-down)
-  (stop-gravity!))
+  (.removeEventListener js/window "keydown" key-down))

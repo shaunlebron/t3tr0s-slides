@@ -41,12 +41,12 @@
    [ 0 0 0 0 0 0 0 0 0 0]
    [ 0 0 0 0 0 0 0 0 0 0]
    [ 0 0 0 0 0 0 0 0 0 0]
-   [ 0 0 0 0 0 0 0 0 0 0]
-   [ 0 0 0 0 0 0 0 0 0 0]
-   [ 0 0 0 1 0 0 0 0 1 0]
-   [ 1 1 1 1 0 0 0 0 1 1]
-   [ 1 1 1 1 1 0 1 1 1 1]
-   [ 1 1 1 1 1 1 1 1 1 1]])
+   [ 0 0 1 0 0 0 0 0 0 0]
+   [ 0 0 1 0 0 0 0 0 0 0]
+   [ 0 1 1 1 0 0 0 0 1 0]
+   [ 1 1 1 1 0 0 0 0 1 0]
+   [ 1 1 1 1 1 0 0 0 1 0]
+   [ 1 1 1 1 1 1 1 1 1 0]])
 
 (def initial-pos [4 2])
 
@@ -68,10 +68,10 @@
 
 (defn create-drawable-board
   [board piece [x y]]
-  (let [gy    (get-drop-pos board  piece [x y])
-        board1 (write-piece board  piece [x gy] "G")
-        board2 (write-piece board1 piece [x y ] "P")]
-    board2))
+  (let [gy    (get-drop-pos board  piece [x y])]
+    (-> board
+        (write-piece piece [x gy] "G")
+        (write-piece piece [x y ] "P"))))
 
 (defn app-drawable-board!
   []
@@ -118,6 +118,18 @@
         cy (first (filter collide? (iterate inc y)))]
     (max y (dec cy))))
 
+(defn spawn-piece! []
+  (swap! app assoc :position initial-pos
+                   :piece (rand-nth (vals pieces))))
+
+(defn soft-drop! []
+  (let [{:keys [piece board position]} @app
+        [x y] position
+        new-pos [x (inc y)]]
+    (if (piece-fits? board piece new-pos)
+      (swap! app assoc :position new-pos)
+      (do (lock-piece!) (spawn-piece!)))))
+
 (defn hard-drop! []
   (let [piece (:piece @app)
         [x y] (:position @app)
@@ -125,33 +137,19 @@
         ny (get-drop-pos board piece [x y])]
     (swap! app assoc :position [x ny])
     (lock-piece!)
-    (swap! app assoc :position initial-pos
-                           :piece (rand-nth (vals pieces)))))
-
-(defn filled-rows
-  [board]
-  (let [filled? #(every? pos? %)]
-    (->> (map-indexed vector board)      ; [[0 row] [1 row] ...]
-         (filter #(filled? (second %)))  ; [[0 row] [1 row] ...]
-         (map first)                     ; [0 1 2 3 ...]
-         (apply hash-set))))             ; #{0 1 2 3 ...}
-
-(defn collapse-rows
-  [rows board]
-  (let [cleared-board (->> board
-                           (map-indexed vector)
-                           (remove #(rows (first %)))
-                           (map second))
-        n (count rows)
-        new-board (into (vec (repeat n empty-row)) cleared-board)]
-    new-board))
+    (spawn-piece!)))
 
 (defn data-row
   [board row]
   [:span
     "["
     (for [col (range cols)]
-      (str " " (get-in board [row col])))
+      (let [x (get-in board [row col])
+            highlight ({0   sx/out
+                        1   sx/core
+                        "P" sx/lit
+                        "G" sx/cmt} x)]
+        (list " " (highlight x))))
     " ]"])
 
 (rum/defc code []
@@ -159,26 +157,24 @@
    [:pre
     [:code
      (sx/cmt "; TRY IT: press space to hard-drop.") "\n"
-     (sx/cmt ";         press left/right to move.") "\n"
+     (sx/cmt ";         press left/right/down to move.") "\n"
      (sx/cmt ";         press up to rotate.") "\n"
      "\n"
-     "(" (sx/core "defn") " filled?\n"
-     "  [[i row]]\n"
-     "  (" (sx/core "every? pos?") " row))\n"
+     "(" (sx/core "defn") " create-drawable-board\n"
+     "  [board piece [x y]]\n"
+     "  (" (sx/core "let") " [gy    (get-drop-pos board piece [x y])]\n"
+     "    (" (sx/core "->") " board\n"
+     "        (write-piece piece [x gy] " (sx/lit "\"G\"") ")\n"
+     "        (write-piece piece [x y ] " (sx/lit "\"P\"") "))))\n"
      "\n"
-     "(" (sx/core "defn") " filled-rows\n"
-     "  [board]\n"
-     "  (" (sx/core "->>") " board                  " (sx/cmt "; [row0 row1...]\n")
-     "       (" (sx/core "map-indexed") " " (sx/core "vector") ")   " (sx/cmt "; [[0 row0] [1 row1]...]\n")
-     "       (" (sx/core "filter") " filled?)       " (sx/cmt "; [[0 row0] [1 row1]...]\n")
-     "       (" (sx/core "map") " " (sx/core "first") ")            " (sx/cmt "; [0 1...]\n")
-     "       (" (sx/core "apply") " " (sx/core "hash-set") ")))     " (sx/cmt "; #{0 1...}\n")
-     "\n\n"
-     "> (filled-rows (" (sx/kw ":board") " @game-state))"
-     "\n\n"
-     "    #{" (interpose " "
-                (for [row (filled-rows (:board @app))]
-                  (sx/lit row))) "}" "\n"]]])
+     "> (create-drawable-board ...)\n"
+     "\n"
+     (let [board (app-drawable-board!)]
+       (for [row (range rows)]
+         (condp = row
+           0          (list "  [" (data-row board row) "\n")
+           (dec rows) (list "   " (data-row board row) "])\n")
+           (list "   " (data-row board row) "\n"))))]]])
 
 (def cell-size (quot 600 rows))
 
@@ -200,7 +196,6 @@
       (.. ctx fill)
       (.. ctx stroke))))
 
-
 (defn piece-abs-coords
   [piece [cx cy]]
   (mapv (fn [[x y]] [(+ cx x) (+ cy y)]) piece))
@@ -212,36 +207,21 @@
 
 (defn draw-board!
   [ctx board]
-  (let [filled? (filled-rows board)]
-    (doseq [y (range rows)
-            x (range cols)]
-      (set! (.. ctx -globalAlpha) (if (filled? y) 0.25 1))
-      (let [v (get-in board [y x])]
-        (when-not (zero? v)
-          (draw-cell! ctx [x y] false))))))
+  (doseq [y (range rows)
+          x (range cols)]
+    (let [v (get-in board [y x])]
+      (when-not (zero? v)
+        (draw-cell! ctx [x y] false)))))
 
-
-(defn draw-row-numbers!
-  [ctx]
-  (set! (.. ctx -font) "12px sans-serif")
-  (set! (.. ctx -fillStyle) "rgba(255,255,255,0.2)")
-  (set! (.. ctx -textBaseline) "middle")
-  (doseq [y (range rows)]
-    (let [rx (* cell-size 0.1)
-          ry (* cell-size (+ y 0.5))]
-      (.fillText ctx y rx ry))))
-
-(defn draw-canvas!
-  [canvas]
+(defn draw-canvas! [canvas]
   (let [ctx (.. canvas (getContext "2d"))]
 
     (set! (.. ctx -fillStyle) "#222")
     (.. ctx (fillRect 0 0 (* cell-size cols) (* cell-size rows)))
 
-    (set! (.. ctx -fillStyle)   dark-green)
+    (set! (.. ctx -fillStyle) dark-green)
     (set! (.. ctx -strokeStyle) light-green)
     (draw-board! ctx (:board @app))
-    (set! (.. ctx -globalAlpha) 1)
 
     (let [piece (:piece @app)
           pos (:position @app)
@@ -255,9 +235,8 @@
         (draw-piece! ctx piece drop-pos)
         (set! (.. ctx -fillStyle)   (if fits dark-purple dark-red))
         (set! (.. ctx -strokeStyle) (if fits light-purple light-red))
-        (draw-piece! ctx piece pos)))
+        (draw-piece! ctx piece pos)))))
 
-    (draw-row-numbers! ctx)))
 
 (def key-names
   {37 :left
@@ -301,7 +280,7 @@
 
 (rum/defc slide []
   [:div
-   [:h1 "12. Detect filled rows."]
+   [:h1 "12. Draw ghost piece."]
    (code)
    (canvas)])
 

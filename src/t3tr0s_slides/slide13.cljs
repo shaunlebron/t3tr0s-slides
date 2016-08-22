@@ -42,16 +42,16 @@
    [ 0 0 0 0 0 0 0 0 0 0]
    [ 0 0 0 0 0 0 0 0 0 0]
    [ 0 0 0 0 0 0 0 0 0 0]
-   [ 0 0 1 0 0 0 0 0 1 0]
-   [ 0 1 1 1 0 1 1 0 1 1]
-   [ 1 1 1 1 0 1 1 1 1 1]
-   [ 1 1 1 1 0 1 1 0 1 1]
-   [ 1 1 1 1 0 1 1 1 1 1]])
+   [ 0 0 0 0 0 0 0 0 0 0]
+   [ 0 0 0 1 0 0 0 0 1 0]
+   [ 1 1 1 1 0 0 0 0 1 1]
+   [ 1 1 1 1 1 0 1 1 1 1]
+   [ 1 1 1 1 1 1 1 1 1 1]])
 
-(def initial-pos [5 2])
+(def initial-pos [4 2])
 
 (def app (atom {:board filled-board
-                :piece (rotate-piece (:I pieces))
+                :piece (:T pieces)
                 :position initial-pos}))
 
 (defn write-piece
@@ -118,22 +118,17 @@
         cy (first (filter collide? (iterate inc y)))]
     (max y (dec cy))))
 
-(defn filled-rows
-  [board]
-  (->> (map-indexed vector board)
-       (filter (fn [[i row]] (every? pos? row)))
-       (map first)
-       (apply hash-set)))
+(defn spawn-piece! []
+  (swap! app assoc :position initial-pos
+                   :piece (rand-nth (vals pieces))))
 
-(defn collapse-rows
-  [board rows]
-  (let [cleared-board (->> board
-                           (map-indexed vector)
-                           (remove #(rows (first %)))
-                           (map second))
-        n (count rows)
-        new-board (into (vec (repeat n empty-row)) cleared-board)]
-    new-board))
+(defn soft-drop! []
+  (let [{:keys [piece board position]} @app
+        [x y] position
+        new-pos [x (inc y)]]
+    (if (piece-fits? board piece new-pos)
+      (swap! app assoc :position new-pos)
+      (do (lock-piece!) (spawn-piece!)))))
 
 (defn hard-drop! []
   (let [piece (:piece @app)
@@ -142,11 +137,25 @@
         ny (get-drop-pos board piece [x y])]
     (swap! app assoc :position [x ny])
     (lock-piece!)
-    (let [board (:board @app)]
-      (swap! app assoc
-             :board (collapse-rows board (filled-rows board))
-             :position initial-pos
-             :piece (rand-nth (vals pieces))))))
+    (spawn-piece!)))
+
+(defn filled-rows
+  [board]
+  (let [filled? #(every? pos? %)]
+    (->> (map-indexed vector board)      ; [[0 row] [1 row] ...]
+         (filter #(filled? (second %)))  ; [[0 row] [1 row] ...]
+         (map first)                     ; [0 1 2 3 ...]
+         (apply hash-set))))             ; #{0 1 2 3 ...}
+
+(defn collapse-rows
+  [rows board]
+  (let [cleared-board (->> board
+                           (map-indexed vector)
+                           (remove #(rows (first %)))
+                           (map second))
+        n (count rows)
+        new-board (into (vec (repeat n empty-row)) cleared-board)]
+    new-board))
 
 (defn data-row
   [board row]
@@ -161,22 +170,26 @@
    [:pre
     [:code
      (sx/cmt "; TRY IT: press space to hard-drop.") "\n"
-     (sx/cmt ";         press left/right to move.") "\n"
+     (sx/cmt ";         press left/right/down to move.") "\n"
      (sx/cmt ";         press up to rotate.") "\n"
      "\n"
-     "(" (sx/core "defn") " collapse-rows\n"
+     "(" (sx/core "defn") " filled?\n"
+     "  [[i row]]\n"
+     "  (" (sx/core "every? pos?") " row))\n"
+     "\n"
+     "(" (sx/core "defn") " filled-rows\n"
      "  [board]\n"
-     "  (" (sx/core "let") " [filled? (filled-rows board)\n"
-     "        cleared (" (sx/core "->>") " board\n"
-     "                     (" (sx/core "map-indexed") " " (sx/core "vector") ")\n"
-     "                     (" (sx/core "remove") " #(filled? (" (sx/core "first") " %)))\n"
-     "                     (map " (sx/core "second") "))\n"
-     "        n (" (sx/core "count") " filled?)]\n"
-     "    (" (sx/core "into") " (" (sx/core "vec") " (" (sx/core "repeat") " n empty-row)) cleared)))\n"
+     "  (" (sx/core "->>") " board                  " (sx/cmt "; [row0 row1...]\n")
+     "       (" (sx/core "map-indexed") " " (sx/core "vector") ")   " (sx/cmt "; [[0 row0] [1 row1]...]\n")
+     "       (" (sx/core "filter") " filled?)       " (sx/cmt "; [[0 row0] [1 row1]...]\n")
+     "       (" (sx/core "map") " " (sx/core "first") ")            " (sx/cmt "; [0 1...]\n")
+     "       (" (sx/core "apply") " " (sx/core "hash-set") ")))     " (sx/cmt "; #{0 1...}\n")
      "\n\n"
-     "(" (sx/core "swap!") " game-state " (sx/core "update-in") " [" (sx/kw ":board") "] collapse-rows)\n"
-     "\n\n"]]])
-
+     "> (filled-rows (" (sx/kw ":board") " @game-state))"
+     "\n\n"
+     "    #{" (interpose " "
+                (for [row (filled-rows (:board @app))]
+                  (sx/lit row))) "}" "\n"]]])
 
 (def cell-size (quot 600 rows))
 
@@ -199,7 +212,6 @@
       (.. ctx stroke))))
 
 
-
 (defn piece-abs-coords
   [piece [cx cy]]
   (mapv (fn [[x y]] [(+ cx x) (+ cy y)]) piece))
@@ -219,6 +231,16 @@
         (when-not (zero? v)
           (draw-cell! ctx [x y] false))))))
 
+
+(defn draw-row-numbers!
+  [ctx]
+  (set! (.. ctx -font) "12px sans-serif")
+  (set! (.. ctx -fillStyle) "rgba(255,255,255,0.2)")
+  (set! (.. ctx -textBaseline) "middle")
+  (doseq [y (range rows)]
+    (let [rx (* cell-size 0.1)
+          ry (* cell-size (+ y 0.5))]
+      (.fillText ctx y rx ry))))
 
 (defn draw-canvas!
   [canvas]
@@ -244,8 +266,9 @@
         (draw-piece! ctx piece drop-pos)
         (set! (.. ctx -fillStyle)   (if fits dark-purple dark-red))
         (set! (.. ctx -strokeStyle) (if fits light-purple light-red))
-        (draw-piece! ctx piece pos)))))
+        (draw-piece! ctx piece pos)))
 
+    (draw-row-numbers! ctx)))
 
 (def key-names
   {37 :left
@@ -289,7 +312,7 @@
 
 (rum/defc slide []
   [:div
-   [:h1 "13. Collapse rows."]
+   [:h1 "13. Detect filled rows."]
    (code)
    (canvas)])
 
