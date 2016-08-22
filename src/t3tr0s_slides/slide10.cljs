@@ -115,6 +115,7 @@
 
 (rum/defc code []
   (let [spawn-class (if (= (:active-block @app) "spawn") "active-row-534ed" "")
+        soft-bump-class (if (= (:active-block @app) "spawn") "bump-row" "")
         soft-class (if (= (:active-block @app) "soft") "active-row-534ed" "")]
     [:.code-cb62a
      [:pre
@@ -132,7 +133,7 @@
          "  (" (sx/core "let") " [{" (sx/kw ":keys") " [piece board position]} @game-state\n"
          "        [x y] position\n"
          "        new-pos [x (" (sx/core "inc") " y)]\n"
-         "    (" (sx/core "if") " (piece-fits? board piece new-pos)\n"
+         "    (" (sx/core "if") [:span {:class soft-bump-class} " (piece-fits? board piece new-pos)\n"]
          "      (" (sx/core "swap!") " game-state " (sx/core "assoc") " " (sx/kw ":position") " new-pos))))\n"
          "      (" (sx/core "do") " (lock-piece!) (spawn-piece!)\n"]]]]))
 

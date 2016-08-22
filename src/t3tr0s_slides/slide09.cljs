@@ -3,6 +3,7 @@
     [cljs.core.async.macros :refer [go go-loop]])
   (:require
     [cljs.core.async :refer [put! take! close! <! >! alts! chan timeout]]
+    [clojure.string :as string]
     [rum.core :as rum]
     [t3tr0s-slides.syntax-highlight :as sx]))
 
@@ -57,8 +58,22 @@
                 :piece (:T pieces)
                 :position initial-pos
                 :active-block? #{}
-                :active-id {"shift" 0
-                            "rotate" 0}}))
+                :bump-block? #{}
+                :active-id {"shift" 0 "rotate" 0}}))
+
+(defn flash-active-block! [block bump?]
+  (go
+    (swap! app update :active-block? conj block)
+    (swap! app update-in [:active-id block] inc)
+    (if bump?
+      (swap! app update :bump-block? conj block)
+      (swap! app update :bump-block? disj block))
+    (let [current-block #(get-in @app [:active-id block])
+          i (current-block)]
+      (<! (timeout 250))
+      (when (= i (current-block))
+        (swap! app update :active-block? disj block)
+        (swap! app update :bump-block? disj block)))))
 
 (defn write-piece
   [board coords [cx cy]]
@@ -88,15 +103,21 @@
 (defn try-shift! [dx]
   (let [{:keys [piece board position]} @app
         [x y] position
-        new-pos [(+ x dx) y]]
-    (when (piece-fits? board piece new-pos)
-      (swap! app assoc :position new-pos))))
+        new-pos [(+ x dx) y]
+        fits? (piece-fits? board piece new-pos)
+        bump? (not fits?)]
+    (when fits?
+      (swap! app assoc :position new-pos))
+    (flash-active-block! "shift" bump?)))
 
 (defn try-rotate! []
   (let [{:keys [piece board position]} @app
-        new-piece (rotate-piece piece)]
-    (when (piece-fits? board new-piece position)
-      (swap! app assoc :piece new-piece))))
+        new-piece (rotate-piece piece)
+        fits? (piece-fits? board new-piece position)
+        bump? (not fits?)]
+    (when fits?
+      (swap! app assoc :piece new-piece))
+    (flash-active-block! "rotate" bump?)))
 
 (defn spawn-piece! []
   (swap! app assoc :position initial-pos
@@ -112,7 +133,9 @@
 
 (rum/defc code []
   (let [shift-class (if ((:active-block? @app) "shift") "active-row-534ed" "")
-        rotate-class (if ((:active-block? @app) "rotate") "active-row-534ed" "")]
+        shift-bump-class (if ((:bump-block? @app) "shift") "bump-row" "")
+        rotate-class (if ((:active-block? @app) "rotate") "active-row-534ed" "")
+        rotate-bump-class (if ((:bump-block? @app) "rotate") "bump-row" "")]
     [:.code-cb62a
      [:pre
       [:code
@@ -124,14 +147,14 @@
          "  (" (sx/core "let") " [{" (sx/kw ":keys") " [piece board position]} @game-state\n"
          "        [x y] position\n"
          "        new-pos [(" (sx/core "+") " x dx) y]]\n"
-         "    (" (sx/core "when") " (piece-fits? board piece new-pos)\n"
+         "    (" (sx/core "when") [:span {:class shift-bump-class} " (piece-fits? board piece new-pos)\n"]
          "      (" (sx/core "swap!") " game-state " (sx/core "assoc") " " (sx/kw ":position") " new-pos))))\n"]
        "\n"
        [:div {:class rotate-class}
          "(" (sx/core "defn") " try-rotate! []\n"
          "  (" (sx/core "let") " [{" (sx/kw ":keys") " [piece board position]} @game-state\n"
          "        new-piece (rotate-piece piece)]\n"
-         "    (" (sx/core "when") " (piece-fits? board new-piece position)\n"
+         "    (" (sx/core "when") [:span {:class rotate-bump-class} " (piece-fits? board new-piece position)\n"]
          "      (" (sx/core "swap!") " game-state " (sx/core "assoc") " " (sx/kw ":piece") " new-piece))))\n"]
        "\n"]]]))
 
@@ -201,22 +224,12 @@
 
 (def key-name #(-> % .-keyCode key-names))
 
-(defn flash-active-block! [block]
-  (go
-    (swap! app update :active-block? conj block)
-    (swap! app update-in [:active-id block] inc)
-    (let [current-block #(get-in @app [:active-id block])
-          i (current-block)]
-      (<! (timeout 250))
-      (when (= i (current-block))
-        (swap! app update :active-block? disj block)))))
-
 (defn key-down [e]
   (let [kname (key-name e)]
    (case kname
-     :left  (do (flash-active-block! "shift") (try-shift! -1))
-     :right (do (flash-active-block! "shift") (try-shift! 1))
-     :up    (do (flash-active-block! "rotate") (try-rotate!))
+     :left  (try-shift! -1)
+     :right (try-shift! 1)
+     :up    (try-rotate!)
      nil)
    (when (#{:down :left :right :space :up} kname)
      (.preventDefault e))))
