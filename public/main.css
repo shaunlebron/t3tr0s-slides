@@ -32,9 +32,14 @@ h1 {
 
 .slide-f6d7b {
   position: absolute;
-  top: 50px;
+  left: -100%; /* initially off-screen */
+  top: 20px;
   margin-left: -490px;
   width: 980px;
+}
+
+body.loaded .slide-f6d7b {
+  transition: left 0.5s ease;
 }
 
 .canvas-2a4d7 {

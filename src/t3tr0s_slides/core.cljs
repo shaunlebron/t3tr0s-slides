@@ -102,6 +102,9 @@
   (.addEventListener js/window "keydown" key-down)
 
   (aset js/window "onhashchange" on-hash-change)
-  (on-hash-change))
+  (on-hash-change)
+
+  (set! js/document.body.className "loaded"))
+
 
 (.addEventListener js/window "load" init)
