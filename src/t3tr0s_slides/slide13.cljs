@@ -122,13 +122,17 @@
   (swap! app assoc :position initial-pos
                    :piece (rand-nth (vals pieces))))
 
+(defn piece-done! []
+  (lock-piece!)
+  (spawn-piece!))
+
 (defn soft-drop! []
   (let [{:keys [piece board position]} @app
         [x y] position
         new-pos [x (inc y)]]
     (if (piece-fits? board piece new-pos)
       (swap! app assoc :position new-pos)
-      (do (lock-piece!) (spawn-piece!)))))
+      (piece-done!))))
 
 (defn hard-drop! []
   (let [piece (:piece @app)
@@ -136,8 +140,7 @@
         board (:board @app)
         ny (get-drop-pos board piece [x y])]
     (swap! app assoc :position [x ny])
-    (lock-piece!)
-    (spawn-piece!)))
+    (piece-done!)))
 
 (defn filled-rows
   [board]

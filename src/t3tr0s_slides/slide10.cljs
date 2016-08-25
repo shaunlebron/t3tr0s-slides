@@ -105,13 +105,17 @@
   (swap! app assoc :position initial-pos
                    :piece (rand-nth (vals pieces))))
 
+(defn piece-done! []
+  (lock-piece!)
+  (spawn-piece!))
+
 (defn soft-drop! []
   (let [{:keys [piece board position]} @app
         [x y] position
         new-pos [x (inc y)]]
     (if (piece-fits? board piece new-pos)
       (swap! app assoc :position new-pos)
-      (do (lock-piece!) (spawn-piece!)))))
+      (piece-done!))))
 
 (rum/defc code []
   (let [spawn-class (if (= (:active-block @app) "spawn") "active-row-534ed" "")
@@ -128,14 +132,19 @@
          "    " (sx/kw ":position") " initial-pos\n"
          "    " (sx/kw ":piece") " (" (sx/core "rand-nth") " (" (sx/core "vals") " pieces))))\n"]
        "\n"
+       [:div {:class spawn-class}
+         "(" (sx/core "defn") " piece-done! []\n"
+         "  (lock-piece!)\n"
+         "  (spawn-piece!))\n"]
+       "\n"
        [:div {:class soft-class}
          "(" (sx/core "defn") " soft-drop! []\n"
          "  (" (sx/core "let") " [{" (sx/kw ":keys") " [piece board position]} @game-state\n"
          "        [x y] position\n"
          "        new-pos [x (" (sx/core "inc") " y)]\n"
          "    (" (sx/core "if") [:span {:class soft-bump-class} " (piece-fits? board piece new-pos)\n"]
-         "      (" (sx/core "swap!") " game-state " (sx/core "assoc") " " (sx/kw ":position") " new-pos))))\n"
-         "      (" (sx/core "do") " (lock-piece!) (spawn-piece!)\n"]]]]))
+         "      (" (sx/core "swap!") " game-state " (sx/core "assoc") " " (sx/kw ":position") " new-pos)\n"
+         "      (piece-done!))))\n"]]]]))
 
 (def cell-size (quot 600 rows))
 

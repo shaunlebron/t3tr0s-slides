@@ -188,9 +188,14 @@
      "                     (map " (sx/core "second") "))\n"
      "        n (" (sx/core "count") " filled?)]\n"
      "    (" (sx/core "into") " (" (sx/core "vec") " (" (sx/core "repeat") " n empty-row)) cleared)))\n"
-     "\n\n"
-     "(" (sx/core "swap!") " game-state " (sx/core "update-in") " [" (sx/kw ":board") "] collapse-rows)\n"
-     "\n\n"]]])
+     "\n"
+     "(" (sx/core "defn") " collapse-rows! []\n"
+     "  (" (sx/core "swap!") " game-state " (sx/core "update-in") " [" (sx/kw ":board") "] collapse-rows))\n"
+     "\n"
+     "(" (sx/core "defn") " piece-done! []\n"
+     "  (lock-piece!)\n"
+     "  (collapse-rows!) " (sx/cmt "; <--- new\n")
+     "  (spawn-piece!))\n"]]])
 
 
 (def cell-size (quot 600 rows))
