@@ -68,11 +68,11 @@
      "    board coords))\n"
      "\n"
      "(" (sx/core "defn") " lock-piece! []\n"
-     "  (" (sx/core "let") " [{" (sx/kw ":keys") " [piece position]} @game-state]\n"
-     "    (" (sx/core "swap!") " game-state " (sx/core "update-in") " [" (sx/kw ":board") "]\n"
+     "  (" (sx/core "let") " [{" (sx/kw ":keys") " [piece position]} @game]\n"
+     "    (" (sx/core "swap!") " game " (sx/core "update-in") " [" (sx/kw ":board") "]\n"
      "        write-piece piece position)))\n"
      "\n"
-     "> (" (sx/kw ":board") " @game-state)\n"
+     "> (" (sx/kw ":board") " @game)\n"
      (for [row (range rows)]
        (condp = row
          0          (list "  [" (data-row row) "\n")

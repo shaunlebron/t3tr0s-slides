@@ -84,27 +84,27 @@
   [:.code-cb62a
    [:pre
     [:code#lang-clj
-     "(" (sx/core "def") " game-state\n"
+     "(" (sx/core "def") " game\n"
      "  (" (sx/core "atom") " {" (sx/kw ":board") " empty-board]\n"
      "         " (sx/kw ":piece") " (" (sx/kw ":J") " pieces)\n"
      "         " (sx/kw ":position") " [" (sx/lit "4") " " (sx/lit "6") "]}))\n"
      "\n\n"
      (sx/cmt "; TRY IT: mouse over the states.") "\n\n"
-     (state-code "g1"  g1  (list "(" (sx/core "swap!") " game-state " (sx/core "update-in") " [" (sx/kw ":position") "] move-left)\n"))
-     (state-code "g2"  g2  (list "(" (sx/core "swap!") " game-state " (sx/core "update-in") " [" (sx/kw ":position") "] move-left)\n"))
-     (state-code "g3"  g3  (list "(" (sx/core "swap!") " game-state " (sx/core "update-in") " [" (sx/kw ":piece") "]    rotate-piece)\n"))
-     (state-code "g4"  g4  (list "(" (sx/core "swap!") " game-state " (sx/core "update-in") " [" (sx/kw ":position") "] move-down)\n"))
-     (state-code "g5"  g5  (list "(" (sx/core "swap!") " game-state " (sx/core "update-in") " [" (sx/kw ":position") "] move-down)\n"))
-     (state-code "g6"  g6  (list "(" (sx/core "swap!") " game-state " (sx/core "update-in") " [" (sx/kw ":piece") "]    rotate-piece)\n"))
-     (state-code "g7"  g7  (list "(" (sx/core "swap!") " game-state " (sx/core "update-in") " [" (sx/kw ":position") "] move-right)\n"))
-     (state-code "g8"  g8  (list "(" (sx/core "swap!") " game-state " (sx/core "update-in") " [" (sx/kw ":position") "] move-right)\n"))
-     (state-code "g9"  g9  (list "(" (sx/core "swap!") " game-state " (sx/core "update-in") " [" (sx/kw ":piece") "]    rotate-piece)\n"))
-     (state-code "g10" g10 (list "(" (sx/core "swap!") " game-state " (sx/core "update-in") " [" (sx/kw ":position") "] move-down)\n"))
-     (state-code "g11" g11 (list "(" (sx/core "swap!") " game-state " (sx/core "update-in") " [" (sx/kw ":position") "] move-down)\n"))
-     (state-code "g12" g12 (list "(" (sx/core "swap!") " game-state " (sx/core "update-in") " [" (sx/kw ":position") "] move-down)\n"))
-     (state-code "g13" g13 (list "(" (sx/core "swap!") " game-state " (sx/core "update-in") " [" (sx/kw ":position") "] move-down)\n"))
-     (state-code "g14" g14 (list "(" (sx/core "swap!") " game-state " (sx/core "update-in") " [" (sx/kw ":position") "] move-down)\n"))
-     (state-code "g15" g15 (list "(" (sx/core "swap!") " game-state " (sx/core "update-in") " [" (sx/kw ":position") "] move-down)\n"))]]])
+     (state-code "g1"  g1  (list "(" (sx/core "swap!") " game " (sx/core "update-in") " [" (sx/kw ":position") "] move-left)\n"))
+     (state-code "g2"  g2  (list "(" (sx/core "swap!") " game " (sx/core "update-in") " [" (sx/kw ":position") "] move-left)\n"))
+     (state-code "g3"  g3  (list "(" (sx/core "swap!") " game " (sx/core "update-in") " [" (sx/kw ":piece") "]    rotate-piece)\n"))
+     (state-code "g4"  g4  (list "(" (sx/core "swap!") " game " (sx/core "update-in") " [" (sx/kw ":position") "] move-down)\n"))
+     (state-code "g5"  g5  (list "(" (sx/core "swap!") " game " (sx/core "update-in") " [" (sx/kw ":position") "] move-down)\n"))
+     (state-code "g6"  g6  (list "(" (sx/core "swap!") " game " (sx/core "update-in") " [" (sx/kw ":piece") "]    rotate-piece)\n"))
+     (state-code "g7"  g7  (list "(" (sx/core "swap!") " game " (sx/core "update-in") " [" (sx/kw ":position") "] move-right)\n"))
+     (state-code "g8"  g8  (list "(" (sx/core "swap!") " game " (sx/core "update-in") " [" (sx/kw ":position") "] move-right)\n"))
+     (state-code "g9"  g9  (list "(" (sx/core "swap!") " game " (sx/core "update-in") " [" (sx/kw ":piece") "]    rotate-piece)\n"))
+     (state-code "g10" g10 (list "(" (sx/core "swap!") " game " (sx/core "update-in") " [" (sx/kw ":position") "] move-down)\n"))
+     (state-code "g11" g11 (list "(" (sx/core "swap!") " game " (sx/core "update-in") " [" (sx/kw ":position") "] move-down)\n"))
+     (state-code "g12" g12 (list "(" (sx/core "swap!") " game " (sx/core "update-in") " [" (sx/kw ":position") "] move-down)\n"))
+     (state-code "g13" g13 (list "(" (sx/core "swap!") " game " (sx/core "update-in") " [" (sx/kw ":position") "] move-down)\n"))
+     (state-code "g14" g14 (list "(" (sx/core "swap!") " game " (sx/core "update-in") " [" (sx/kw ":position") "] move-down)\n"))
+     (state-code "g15" g15 (list "(" (sx/core "swap!") " game " (sx/core "update-in") " [" (sx/kw ":position") "] move-down)\n"))]]])
 
 (def cell-size (quot 600 rows))
 

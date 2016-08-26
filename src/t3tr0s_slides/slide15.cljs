@@ -244,7 +244,7 @@
      "         board)))\n"
      "\n"
      "(" (sx/core "defn") " animate-collapse! []\n"
-     "  (" (sx/core "let") " [board     (" (sx/lit ":board") " @game-state)\n"
+     "  (" (sx/core "let") " [board     (" (sx/lit ":board") " @game)\n"
      "        rows      (filled-rows board)\n"
      "        cleared   (clear-rows board rows)\n"
      "        collapsed (collapse-rows board rows)]\n"
@@ -254,18 +254,19 @@
      (sx/cmt ";         Press \"R\" to resume.") "\n"
      "    (" (sx/kw "go") "\n"
      "      (" (sx/core "dotimes") " [_ " (sx/lit "3") "]\n"
-     "        " (data-row 0 (list "(" (sx/core "swap!") " game-state " (sx/core "assoc") " " (sx/lit ":board") " cleared)")) "\n"
+     "        " (data-row 0 (list "(" (sx/core "swap!") " game " (sx/core "assoc") " " (sx/lit ":board") " cleared)")) "\n"
      "        (" (sx/kw "<!") " (" (sx/kw "timeout") " " (sx/lit "170") "))\n"
-     "        " (data-row 1 (list "(" (sx/core "swap!") " game-state " (sx/core "assoc") " " (sx/lit ":board") " board)")) "\n"
+     "        " (data-row 1 (list "(" (sx/core "swap!") " game " (sx/core "assoc") " " (sx/lit ":board") " board)")) "\n"
      "        (" (sx/kw "<!") " (" (sx/kw "timeout") " " (sx/lit "170") ")))\n"
-     "      " (data-row 2 (list "(" (sx/core "swap!") " game-state " (sx/core "assoc") " " (sx/lit ":board") " cleared)")) "\n"
+     "      " (data-row 2 (list "(" (sx/core "swap!") " game " (sx/core "assoc") " " (sx/lit ":board") " cleared)")) "\n"
      "      (" (sx/kw "<!") " (" (sx/kw "timeout") " " (sx/lit "220") "))\n"
-     "      " (data-row 3 (list "(" (sx/core "swap!") " game-state " (sx/core "assoc") " " (sx/lit ":board") " collapsed)")) ")))\n"
+     "      " (data-row 3 (list "(" (sx/core "swap!") " game " (sx/core "assoc") " " (sx/lit ":board") " collapsed)")) ")))\n"
      "\n\n"
      "(" (sx/core "defn") " piece-done! []\n"
      "  (" (sx/kw "go\n")
      "    (lock-piece!)\n"
-     "    (" (sx/kw "<!") " (animate-collapse!)) " (sx/cmt "; <--- new\n")
+     "    (" (sx/core "when") " (" (sx/core "seq") " (filled-rows (" (sx/lit ":board") " @game))) " (sx/cmt "; <--- new\n")
+     "      (" (sx/kw "<!") " (animate-collapse!))) " (sx/cmt "             ; <--- new\n")
      "    (spawn-piece!)))\n"]]])
 
 (def cell-size (quot 600 nrows))

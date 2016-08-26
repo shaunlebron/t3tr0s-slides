@@ -160,7 +160,7 @@
 
 (add-watch anim-index :history on-change-anim-index)
 
-(defn go-go-collapse! []
+(defn animate-collapse! []
   (let [board     (:board @app)
         rows      (filled-rows board)
         cleared   (clear-rows board rows)
@@ -170,22 +170,23 @@
     (reset! prev-cleared   (assoc @app :board cleared))
     (reset! prev-collapsed (assoc @app :board collapsed))
 
-    (go
-      (dotimes [i 3]
+    (when (seq rows)
+      (go
+        (dotimes [i 3]
 
-        (reset! anim-index 0)
+          (reset! anim-index 0)
+          (<! (timeout 170))
+
+          (reset! anim-index 1)
+          (<! (timeout 170)))
+
+        (reset! anim-index 2)
+        (<! (timeout 220))
+
+        (reset! anim-index 3)
         (<! (timeout 170))
 
-        (reset! anim-index 1)
-        (<! (timeout 170)))
-
-      (reset! anim-index 2)
-      (<! (timeout 220))
-
-      (reset! anim-index 3)
-      (<! (timeout 170))
-
-      (reset! anim-index nil))))
+        (reset! anim-index nil)))))
 
 
 (defn spawn-piece! []
@@ -198,11 +199,11 @@
          :position nil))
 
 (defn piece-done! []
+  (lock-piece!)
+  (clear-piece!)
   (go
-    (lock-piece!)
-    (clear-piece!)
     (when (seq (filled-rows (:board @app)))
-      (<! (go-go-collapse!)))
+      (<! (animate-collapse!)))
     (spawn-piece!)))
 
 (defn soft-drop! []
@@ -236,38 +237,7 @@
 (rum/defc code []
   [:.code-cb62a
    [:pre
-    [:code
-     "(" (sx/core "defn") " clear-rows\n"
-     "  [board rows]\n"
-     "  (" (sx/core "vec") " (" (sx/core "map-indexed") "\n"
-     "         (" (sx/core "fn") " [i row] (" (sx/core "if") " (rows i) empty-row row))\n"
-     "         board)))\n"
-     "\n"
-     "(" (sx/core "defn") " go-go-collapse! []\n"
-     "\n"
-     "  (" (sx/core "let") " [board     (" (sx/lit ":board") " @game-state)\n"
-     "        rows      (filled-rows board)\n"
-     "        cleared   (clear-rows board rows)\n"
-     "        collapsed (collapse-rows board rows)]\n"
-     "\n"
-     (sx/cmt "; TRY IT: knock out some rows on the right,") "\n"
-     (sx/cmt ";         then mouse over states below.") "\n"
-     (sx/cmt ";         Press \"R\" to resume.") "\n"
-     "\n"
-     "    (" (sx/kw "go") "\n"
-     "      (" (sx/core "dotimes") " [_ " (sx/lit "3") "]\n"
-     "\n"
-     "        " (data-row 0 (list "(" (sx/core "swap!") " game-state " (sx/core "assoc") " " (sx/lit ":board") " cleared)")) "\n"
-     "        (" (sx/kw "<!") " (" (sx/kw "timeout") " " (sx/lit "170") "))\n"
-     "\n"
-     "        " (data-row 1 (list "(" (sx/core "swap!") " game-state " (sx/core "assoc") " " (sx/lit ":board") " board)")) "\n"
-     "        (" (sx/kw "<!") " (" (sx/kw "timeout") " " (sx/lit "170") ")))\n"
-     "\n"
-     "      " (data-row 2 (list "(" (sx/core "swap!") " game-state " (sx/core "assoc") " " (sx/lit ":board") " cleared)")) "\n"
-     "      (" (sx/kw "<!") " (" (sx/kw "timeout") " " (sx/lit "220") "))\n"
-     "\n"
-     "      " (data-row 3 (list "(" (sx/core "swap!") " game-state " (sx/core "assoc") " " (sx/lit ":board") " collapsed)")) ")))\n"]]])
-
+    [:code]]])
 
 (def cell-size (quot 600 nrows))
 

@@ -144,18 +144,18 @@
        "\n"
        [:div {:class shift-class}
          "(" (sx/core "defn") " try-shift! [dx]\n"
-         "  (" (sx/core "let") " [{" (sx/kw ":keys") " [piece board position]} @game-state\n"
+         "  (" (sx/core "let") " [{" (sx/kw ":keys") " [piece board position]} @game\n"
          "        [x y] position\n"
          "        new-pos [(" (sx/core "+") " x dx) y]]\n"
          "    (" (sx/core "when") [:span {:class shift-bump-class} " (piece-fits? board piece new-pos)\n"]
-         "      (" (sx/core "swap!") " game-state " (sx/core "assoc") " " (sx/kw ":position") " new-pos))))\n"]
+         "      (" (sx/core "swap!") " game " (sx/core "assoc") " " (sx/kw ":position") " new-pos))))\n"]
        "\n"
        [:div {:class rotate-class}
          "(" (sx/core "defn") " try-rotate! []\n"
-         "  (" (sx/core "let") " [{" (sx/kw ":keys") " [piece board position]} @game-state\n"
+         "  (" (sx/core "let") " [{" (sx/kw ":keys") " [piece board position]} @game\n"
          "        new-piece (rotate-piece piece)]\n"
          "    (" (sx/core "when") [:span {:class rotate-bump-class} " (piece-fits? board new-piece position)\n"]
-         "      (" (sx/core "swap!") " game-state " (sx/core "assoc") " " (sx/kw ":piece") " new-piece))))\n"]
+         "      (" (sx/core "swap!") " game " (sx/core "assoc") " " (sx/kw ":piece") " new-piece))))\n"]
        "\n"]]]))
 
 (def cell-size (quot 600 rows))

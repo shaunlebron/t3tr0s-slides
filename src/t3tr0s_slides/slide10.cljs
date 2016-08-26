@@ -128,7 +128,7 @@
        "\n"
        [:div {:class spawn-class}
          "(" (sx/core "defn") " spawn-piece! []\n"
-         "  (" (sx/core "swap!") " game-state " (sx/core "assoc") "\n"
+         "  (" (sx/core "swap!") " game " (sx/core "assoc") "\n"
          "    " (sx/kw ":position") " initial-pos\n"
          "    " (sx/kw ":piece") " (" (sx/core "rand-nth") " (" (sx/core "vals") " pieces))))\n"]
        "\n"
@@ -139,11 +139,11 @@
        "\n"
        [:div {:class soft-class}
          "(" (sx/core "defn") " soft-drop! []\n"
-         "  (" (sx/core "let") " [{" (sx/kw ":keys") " [piece board position]} @game-state\n"
+         "  (" (sx/core "let") " [{" (sx/kw ":keys") " [piece board position]} @game\n"
          "        [x y] position\n"
          "        new-pos [x (" (sx/core "inc") " y)]\n"
          "    (" (sx/core "if") [:span {:class soft-bump-class} " (piece-fits? board piece new-pos)\n"]
-         "      (" (sx/core "swap!") " game-state " (sx/core "assoc") " " (sx/kw ":position") " new-pos)\n"
+         "      (" (sx/core "swap!") " game " (sx/core "assoc") " " (sx/kw ":position") " new-pos)\n"
          "      (piece-done!))))\n"]]]]))
 
 (def cell-size (quot 600 rows))

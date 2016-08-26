@@ -101,8 +101,8 @@
      "      (" (sx/core "zero?") " (" (sx/core "get-in") " board [(" (sx/core "+") " y cy) (" (sx/core "+") " x cx)])))\n"
      "    piece))\n"
      "\n\n"
-     "> (piece-fits? (" (sx/kw ":board") " @game-state)\n"
-     "               (" (sx/kw ":piece") " @game-state)\n"
+     "> (piece-fits? (" (sx/kw ":board") " @game)\n"
+     "               (" (sx/kw ":piece") " @game)\n"
      "               "(let [[x y] (:position @app)]
                         (list "[" (sx/lit x) " " (sx/lit y) "]")) ")\n"
      "\n"

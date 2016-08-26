@@ -190,7 +190,7 @@
      "    (" (sx/core "into") " (" (sx/core "vec") " (" (sx/core "repeat") " n empty-row)) cleared)))\n"
      "\n"
      "(" (sx/core "defn") " collapse-rows! []\n"
-     "  (" (sx/core "swap!") " game-state " (sx/core "update-in") " [" (sx/kw ":board") "] collapse-rows))\n"
+     "  (" (sx/core "swap!") " game " (sx/core "update-in") " [" (sx/kw ":board") "] collapse-rows))\n"
      "\n"
      "(" (sx/core "defn") " piece-done! []\n"
      "  (lock-piece!)\n"

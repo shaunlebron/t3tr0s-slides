@@ -188,7 +188,7 @@
      "       (" (sx/core "map") " " (sx/core "first") ")            " (sx/cmt "; [0 1...]\n")
      "       (" (sx/core "apply") " " (sx/core "hash-set") ")))     " (sx/cmt "; #{0 1...}\n")
      "\n\n"
-     "> (filled-rows (" (sx/kw ":board") " @game-state))"
+     "> (filled-rows (" (sx/kw ":board") " @game))"
      "\n\n"
      "    #{" (interpose " "
                 (for [row (filled-rows (:board @app))]
