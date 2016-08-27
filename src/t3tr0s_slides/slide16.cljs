@@ -321,10 +321,20 @@
             drop-pos (assoc pos 1 drop-y)
             fits (app-piece-fits?)]
 
+        (set! (.. ctx -fillStyle) "#555")
+        (set! (.. ctx -strokeStyle) "#AAA")
+        (let [places (- (second pos) (dec (second initial-pos)))
+              [x y] pos
+              q 5]
+          (dotimes [i places]
+            (set! (.. ctx -globalAlpha) (/ (max 0 (min q (- i (- places q)))) q 5))
+            (draw-piece! ctx piece [x (- y (- places i))])))
+
+        (set! (.. ctx -globalAlpha) 1)
         (when (and piece pos)
-          (set! (.. ctx -fillStyle)   "#333")
-          (set! (.. ctx -strokeStyle) "#666")
-          (draw-piece! ctx piece drop-pos)
+          ;(set! (.. ctx -fillStyle)   "#333")
+          ;(set! (.. ctx -strokeStyle) "#666")
+          ;(draw-piece! ctx piece drop-pos)
           (set! (.. ctx -fillStyle)   (if fits dark-purple dark-red))
           (set! (.. ctx -strokeStyle) (if fits light-purple light-red))
           (draw-piece! ctx piece pos))))))
