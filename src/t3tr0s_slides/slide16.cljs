@@ -4,6 +4,7 @@
   (:require
     [cljs.core.async :refer [put! take! close! <! >! alts! chan timeout]]
     [rum.core :as rum]
+    [t3tr0s-slides.state :refer [current-slide]]
     [t3tr0s-slides.syntax-highlight :as sx]))
 
 (def dark-green "#143")
@@ -45,16 +46,16 @@
    [ 0 0 0 0 0 0 0 0 0 0]
    [ 0 0 0 0 0 0 0 0 0 0]
    [ 0 0 0 0 0 0 0 0 0 0]
-   [ 0 0 1 0 0 0 0 0 1 0]
-   [ 0 1 1 1 0 1 1 0 1 1]
-   [ 1 1 1 1 0 1 1 1 1 1]
-   [ 1 1 1 1 0 1 1 0 1 1]
-   [ 1 1 1 1 0 1 1 1 1 1]])
+   [ 0 0 0 0 0 0 0 0 0 0]
+   [ 0 0 0 0 0 0 0 0 0 0]
+   [ 0 0 0 0 0 0 0 0 0 0]
+   [ 0 0 0 0 0 0 0 0 0 0]
+   [ 0 0 0 0 0 0 0 0 0 0]])
 
 (def initial-pos [5 2])
 
 (def app (atom {:board filled-board
-                :piece (rotate-piece (:I pieces))
+                :piece (rand-nth (vals pieces))
                 :position initial-pos}))
 
 (defn write-piece
@@ -101,9 +102,9 @@
 
 (defn try-shift! [dx]
   (when-let [piece (:piece @app)]
-    (let[[x y] (:position @app)
-         board (:board @app)
-         new-pos [(+ x dx) y]]
+    (let [[x y] (:position @app)
+          board (:board @app)
+          new-pos [(+ x dx) y]]
       (when (piece-fits? board piece new-pos)
         (swap! app assoc :position new-pos)))))
 
@@ -198,13 +199,29 @@
          :piece nil
          :position nil))
 
+(def halt-chan)
+(defn stop-gravity! []
+  (close! halt-chan))
+
+(declare soft-drop!)
+(defn start-gravity! []
+  (when (= @current-slide 16)
+    (set! halt-chan (chan))
+    (go-loop []
+      (let [[_ c] (alts! [(timeout 500) halt-chan])]
+        (when (not= c halt-chan)
+          (soft-drop!)
+          (recur))))))
+
 (defn piece-done! []
   (lock-piece!)
   (clear-piece!)
+  (stop-gravity!)
   (go
     (when (seq (filled-rows (:board @app)))
       (<! (animate-collapse!)))
-    (spawn-piece!)))
+    (spawn-piece!)
+    (start-gravity!)))
 
 (defn soft-drop! []
   (let [{:keys [piece board position]} @app
@@ -237,7 +254,12 @@
 (rum/defc code []
   [:.code-cb62a
    [:pre
-    [:code]]])
+    [:code
+      "(" (sx/core "defn") " start-gravity! []\n"
+      "  (" (sx/kw "go-loop") " []\n"
+      "    (" (sx/kw "<!") " (" (sx/kw "timeout") " " (sx/lit "500") "))\n"
+      "    (soft-drop!)\n"
+      "    (" (sx/core "recur") ")))\n"]]])
 
 (def cell-size (quot 600 nrows))
 
@@ -307,7 +329,6 @@
           (set! (.. ctx -strokeStyle) (if fits light-purple light-red))
           (draw-piece! ctx piece pos))))))
 
-
 (def key-names
   {37 :left
    38 :up
@@ -376,7 +397,9 @@
   (add-watch app :render render))
 
 (defn resume []
+  (start-gravity!)
   (.addEventListener js/window "keydown" key-down))
 
 (defn stop []
+  (stop-gravity!)
   (.removeEventListener js/window "keydown" key-down))

@@ -1,5 +1,6 @@
 (ns t3tr0s-slides.core
   (:require
+    [t3tr0s-slides.state :refer [current-slide]]
     [t3tr0s-slides.slide00 :as slide00]
     [t3tr0s-slides.slide01 :as slide01]
     [t3tr0s-slides.slide02 :as slide02]
@@ -16,6 +17,7 @@
     [t3tr0s-slides.slide13 :as slide13]
     [t3tr0s-slides.slide14 :as slide14]
     [t3tr0s-slides.slide15 :as slide15]
+    [t3tr0s-slides.slide16 :as slide16]
     [t3tr0s-slides.slide-end :as slide-end]))
 
 (enable-console-print!)
@@ -37,9 +39,8 @@
    {:id "slide13" :init slide13/init :resume slide13/resume :stop slide13/stop}
    {:id "slide14" :init slide14/init :resume slide14/resume :stop slide14/stop}
    {:id "slide15" :init slide15/init :resume slide15/resume :stop slide15/stop}
+   {:id "slide16" :init slide16/init :resume slide16/resume :stop slide16/stop}
    {:id "slide-end" :init slide-end/init :resume slide-end/resume :stop slide-end/stop}])
-
-(def current-slide (atom nil))
 
 (defn on-slide-change
   [_ _ i-prev i]
