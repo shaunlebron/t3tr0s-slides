@@ -1,4 +1,4 @@
-(ns t3tr0s-slides.slide16
+(ns t3tr0s-slides.slide17
   (:require-macros
     [cljs.core.async.macros :refer [go go-loop]])
   (:require
@@ -199,17 +199,17 @@
          :piece nil
          :position nil))
 
-(def halt-chan)
+(def stop-chan)
 (defn stop-gravity! []
-  (close! halt-chan))
+  (close! stop-chan))
 
 (declare soft-drop!)
 (defn start-gravity! []
-  (when (= @current-slide 16)
-    (set! halt-chan (chan))
+  (when (= @current-slide 17)
+    (set! stop-chan (chan))
     (go-loop []
-      (let [[_ c] (alts! [(timeout 500) halt-chan])]
-        (when (not= c halt-chan)
+      (let [[_ c] (alts! [(timeout 500) stop-chan])]
+        (when (not= c stop-chan)
           (soft-drop!)
           (recur))))))
 
@@ -255,11 +255,27 @@
   [:.code-cb62a
    [:pre
     [:code
+      "(" (sx/core "def") " stop-chan)\n"
+      "(" (sx/core "defn") " stop-gravity! []\n"
+      "  (" (sx/kw "close!") " stop-chan)\n"
+      "\n"
       "(" (sx/core "defn") " start-gravity! []\n"
+      "  (" (sx/core "set!") " stop-chan (" (sx/kw "chan") "))\n"
       "  (" (sx/kw "go-loop") " []\n"
-      "    (" (sx/kw "<!") " (" (sx/kw "timeout") " " (sx/lit "500") "))\n"
-      "    (soft-drop!)\n"
-      "    (" (sx/core "recur") ")))\n"]]])
+      "    (" (sx/core "let") " [drop-chan (" (sx/kw "timeout") " (" (sx/lit ":drop-speed") " @game))\n"
+      "          [_ c] (" (sx/kw "alts!") " drop-chan stop-chan)]\n"
+      "      (" (sx/core "when") " (" (sx/core "=") " c drop-chan)\n"
+      "        (soft-drop!)\n"
+      "        (" (sx/core "recur") ")))))\n"
+      "\n"
+      "(" (sx/core "defn") " piece-done! []\n"
+      "  (" (sx/kw "go\n")
+      "    (lock-piece!)\n"
+      "    (stop-gravity!)" (sx/cmt "  ; <--- new\n")
+      "    (" (sx/core "when") " (" (sx/core "seq") " (filled-rows (" (sx/lit ":board") " @game)))\n"
+      "      (" (sx/kw "<!") " (animate-collapse!)))\n"
+      "    (spawn-piece!)))\n"
+      "    (start-gravity!)" (sx/cmt " ; <--- new\n")]]])
 
 (def cell-size (quot 600 nrows))
 
@@ -393,7 +409,7 @@
 
 (rum/defc slide []
   [:div
-   [:h1 "16. Add simple gravity."]
+   [:h1 "17. Stop/restart gravity."]
    (code)
    (canvas)])
 

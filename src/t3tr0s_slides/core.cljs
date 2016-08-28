@@ -18,6 +18,7 @@
     [t3tr0s-slides.slide14 :as slide14]
     [t3tr0s-slides.slide15 :as slide15]
     [t3tr0s-slides.slide16 :as slide16]
+    [t3tr0s-slides.slide17 :as slide17]
     [t3tr0s-slides.slide-end :as slide-end]))
 
 (enable-console-print!)
@@ -40,6 +41,7 @@
    {:id "slide14" :init slide14/init :resume slide14/resume :stop slide14/stop}
    {:id "slide15" :init slide15/init :resume slide15/resume :stop slide15/stop}
    {:id "slide16" :init slide16/init :resume slide16/resume :stop slide16/stop}
+   {:id "slide17" :init slide17/init :resume slide17/resume :stop slide17/stop}
    {:id "slide-end" :init slide-end/init :resume slide-end/resume :stop slide-end/stop}])
 
 (defn on-slide-change
