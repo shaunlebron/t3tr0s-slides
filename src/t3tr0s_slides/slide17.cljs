@@ -56,7 +56,8 @@
 
 (def app (atom {:board filled-board
                 :piece (rand-nth (vals pieces))
-                :position initial-pos}))
+                :position initial-pos
+                :mouse-over false}))
 
 (defn write-piece
   [board coords [cx cy] value]
@@ -205,7 +206,8 @@
 
 (declare soft-drop!)
 (defn start-gravity! []
-  (when (= @current-slide 17)
+  (when (and (= @current-slide 17)
+             (:mouse-over @app))
     (set! stop-chan (chan))
     (go-loop []
       (let [[_ c] (alts! [(timeout 500) stop-chan])]
@@ -255,6 +257,8 @@
   [:.code-cb62a
    [:pre
     [:code
+      (sx/cmt "; TRY IT: Mouse over the board to activate gravity.\n")
+      "\n"
       "(" (sx/core "def") " stop-chan)\n"
       "(" (sx/core "defn") " stop-gravity! []\n"
       "  (" (sx/kw "close!") " stop-chan)\n"
@@ -401,15 +405,25 @@
       (draw-canvas! canvas)
       state))})
 
+(defn on-mouse-enter! []
+  (swap! app assoc :mouse-over true)
+  (start-gravity!))
+
+(defn on-mouse-leave! []
+  (swap! app assoc :mouse-over false)
+  (stop-gravity!))
+
 (rum/defc canvas < canvas-mixin []
-  [:.canvas-2a4d7
+  [:.canvas-2a4d7.canvas-mouse-activated
    [:canvas
     {:ref "canvas"
-     :style {:position "relative"}}]])
+     :style {:position "relative"}
+     :on-mouse-enter on-mouse-enter!
+     :on-mouse-leave on-mouse-leave!}]])
 
 (rum/defc slide []
   [:div
-   [:h1 "17. Stop/restart gravity."]
+   [:h1 "17. Properly restart gravity on spawn."]
    (code)
    (canvas)])
 

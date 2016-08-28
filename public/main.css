@@ -53,6 +53,12 @@ body.loaded .slide-f6d7b {
   border-bottom-left-radius: 0;
   -webkit-user-select: none;
 }
+.canvas-mouse-activated {
+  opacity: 0.8;
+}
+.canvas-mouse-activated:hover {
+  opacity: 1;
+}
 
 .code-cb62a {
   width: 600px;
