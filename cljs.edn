@@ -1,4 +1,4 @@
-{:cljs-version "1.9.225"
+{:cljs-version "1.9.227"
  :dependencies [[org.clojure/core.async "0.2.385"]
                 [rum "0.10.5"]]
 
