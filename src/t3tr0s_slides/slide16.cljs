@@ -200,20 +200,19 @@
          :piece nil
          :position nil))
 
-(def halt-chan)
+(def stop-chan (chan))
 (defn stop-gravity! []
-  (close! halt-chan))
+  (put! stop-chan 0))
 
 (declare soft-drop!)
 (defn start-gravity! []
-  (when (and (= @current-slide 16)
-             (:mouse-over @app))
-    (set! halt-chan (chan))
-    (go-loop []
-      (let [[_ c] (alts! [(timeout 500) halt-chan])]
-        (when (not= c halt-chan)
-          (soft-drop!)
-          (recur))))))
+  (go-loop []
+    (let [[_ c] (alts! [(timeout 500) stop-chan])]
+      (when (and (= @current-slide 16)
+                 (:mouse-over @app)
+                 (not= c stop-chan))
+        (soft-drop!)
+        (recur)))))
 
 (defn piece-done! []
   (lock-piece!)
@@ -390,12 +389,14 @@
       state))})
 
 (defn on-mouse-enter! []
-  (swap! app assoc :mouse-over true)
-  (start-gravity!))
+  (when-not (:mouse-over @app)
+    (start-gravity!))
+  (swap! app assoc :mouse-over true))
 
 (defn on-mouse-leave! []
-  (swap! app assoc :mouse-over false)
-  (stop-gravity!))
+  (when (:mouse-over @app)
+    (stop-gravity!))
+  (swap! app assoc :mouse-over false))
 
 (rum/defc canvas < canvas-mixin []
   [:.canvas-2a4d7.canvas-mouse-activated
@@ -425,5 +426,5 @@
   (.addEventListener js/window "keydown" key-down))
 
 (defn stop []
-  (stop-gravity!)
+  (swap! app assoc :mouse-over false)
   (.removeEventListener js/window "keydown" key-down))

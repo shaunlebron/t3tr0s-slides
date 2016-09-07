@@ -200,20 +200,19 @@
          :piece nil
          :position nil))
 
-(def stop-chan)
+(def stop-chan (chan))
 (defn stop-gravity! []
-  (close! stop-chan))
+  (put! stop-chan 0))
 
 (declare soft-drop!)
 (defn start-gravity! []
-  (when (and (= @current-slide 17)
-             (:mouse-over @app))
-    (set! stop-chan (chan))
-    (go-loop []
-      (let [[_ c] (alts! [(timeout 500) stop-chan])]
-        (when (not= c stop-chan)
-          (soft-drop!)
-          (recur))))))
+  (go-loop []
+    (let [[_ c] (alts! [(timeout 500) stop-chan])]
+      (when (and (= @current-slide 17)
+                 (:mouse-over @app)
+                 (not= c stop-chan))
+        (soft-drop!)
+        (recur)))))
 
 (defn piece-done! []
   (lock-piece!)
@@ -261,13 +260,12 @@
       "\n"
       "(" (sx/core "def") " stop-chan)\n"
       "(" (sx/core "defn") " stop-gravity! []\n"
-      "  (" (sx/kw "close!") " stop-chan)\n"
+      "  (" (sx/kw "put!") " stop-chan " (sx/lit "0") ")\n"
       "\n"
       "(" (sx/core "defn") " start-gravity! []\n"
-      "  (" (sx/core "set!") " stop-chan (" (sx/kw "chan") "))\n"
       "  (" (sx/kw "go-loop") " []\n"
-      "    (" (sx/core "let") " [drop-chan (" (sx/kw "timeout") " (" (sx/lit ":drop-speed") " @game))\n"
-      "          [_ c] (" (sx/kw "alts!") " drop-chan stop-chan)]\n"
+      "    (" (sx/core "let") " [drop-chan (" (sx/kw "timeout") " " (sx/lit "500") ")\n"
+      "          [_ c] (" (sx/kw "alts!") " [drop-chan stop-chan])]\n"
       "      (" (sx/core "when") " (" (sx/core "=") " c drop-chan)\n"
       "        (soft-drop!)\n"
       "        (" (sx/core "recur") ")))))\n"
@@ -406,12 +404,14 @@
       state))})
 
 (defn on-mouse-enter! []
-  (swap! app assoc :mouse-over true)
-  (start-gravity!))
+  (when-not (:mouse-over @app)
+    (start-gravity!))
+  (swap! app assoc :mouse-over true))
 
 (defn on-mouse-leave! []
-  (swap! app assoc :mouse-over false)
-  (stop-gravity!))
+  (when (:mouse-over @app)
+    (stop-gravity!))
+  (swap! app assoc :mouse-over false))
 
 (rum/defc canvas < canvas-mixin []
   [:.canvas-2a4d7.canvas-mouse-activated
@@ -441,5 +441,5 @@
   (.addEventListener js/window "keydown" key-down))
 
 (defn stop []
-  (stop-gravity!)
+  (swap! app assoc :mouse-over false)
   (.removeEventListener js/window "keydown" key-down))

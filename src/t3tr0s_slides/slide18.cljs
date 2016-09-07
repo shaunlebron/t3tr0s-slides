@@ -180,16 +180,14 @@
 
 (declare soft-drop!)
 (defn start-gravity! []
-  (swap! app assoc :gravity true)
-  (when (and (= @current-slide 18)
-             (:mouse-over @app))
-    (go-loop []
-      (let [delay (timeout (if (:soft-drop @app) 30 500))
-            [_ c] (alts! [delay stop-chan])]
-        (when (not= c stop-chan)
-          (soft-drop!)
-          (recur)))
-      (swap! app assoc :gravity false))))
+  (go-loop []
+    (let [delay (timeout (if (:soft-drop @app) 30 500))
+          [_ c] (alts! [delay stop-chan])]
+      (when (and (= @current-slide 18)
+                 (:mouse-over @app)
+                 (not= c stop-chan))
+        (soft-drop!)
+        (recur)))))
 
 (defn piece-done! []
   (lock-piece!)
@@ -224,7 +222,36 @@
     [:code
       (sx/cmt "; TRY IT: Mouse over the board to activate gravity.\n")
       (sx/cmt ";         Press Down for smooth soft-drop.\n")
-      "\n"]]])
+      "\n"
+      "(" (sx/core "def") " move-down-chan (" (sx/kw "chan") " " (sx/lit "1") " (" (sx/core "dedupe") ")))\n"
+      "\n"
+      "(" (sx/kw "put!") " move-down-chan " (sx/lit "true") ")  " (sx/cmt "; <-- run when down is pressed\n")
+      "(" (sx/kw "put!") " move-down-chan " (sx/lit "false") ") " (sx/cmt "; <-- run when down is released\n")
+      "\n"
+      "(" (sx/core "defn") " manage-gravity-speed! []\n"
+      "  (" (sx/kw "go-loop") " []\n"
+      "    (" (sx/core "swap!") " game " (sx/core "assoc") " " (sx/lit ":soft-drop") " (" (sx/kw "<!") " move-down-chan))\n"
+      "    (stop-gravity!)\n"
+      "    (start-gravity!)\n"
+      "    (" (sx/core "recur") ")))\n"
+      "\n"
+      "(" (sx/core "defn") " start-gravity! []\n"
+      "  (" (sx/kw "go-loop") " []\n"
+      "    (" (sx/core "let") " [drop-chan (" (sx/kw "timeout") " (" (sx/core "if") " (" (sx/lit ":soft-drop") " @game) " (sx/lit "50 ") (sx/lit "500") "))\n"
+      "          [_ c] (" (sx/kw "alts!") " [drop-chan stop-chan])]\n"
+      "      (" (sx/core "when") " (" (sx/core "=") " c drop-chan)\n"
+      "        (soft-drop!)\n"
+      "        (" (sx/core "recur") ")))))\n"
+      "\n"
+      "(" (sx/core "defn") " piece-done! []\n"
+      "  (" (sx/kw "go\n")
+      "    (lock-piece!)\n"
+      "    (stop-gravity!)\n"
+      "    (" (sx/core "swap!") " game " (sx/core "assoc") " " (sx/lit ":soft-drop") " " (sx/lit "false") ")\n"
+      "    (" (sx/core "when") " (" (sx/core "seq") " (filled-rows (" (sx/lit ":board") " @game)))\n"
+      "      (" (sx/kw "<!") " (animate-collapse!)))\n"
+      "    (spawn-piece!)))\n"
+      "    (start-gravity!)\n"]]])
 
 (def cell-size (quot 600 nrows))
 
@@ -315,11 +342,16 @@
 (def key-name #(-> % .-keyCode key-names))
 
 (def move-down-chan (chan 1 (dedupe)))
-(go-loop []
-  (swap! app assoc :soft-drop (<! move-down-chan))
-  (stop-gravity!)
-  (start-gravity!)
-  (recur))
+
+(def gravity-speed-managed? false)
+(defn manage-gravity-speed! []
+  (when-not gravity-speed-managed?
+    (set! gravity-speed-managed? true)
+    (go-loop []
+      (swap! app assoc :soft-drop (<! move-down-chan))
+      (stop-gravity!)
+      (start-gravity!)
+      (recur))))
 
 (defn key-down [e]
   (let [kname (key-name e)
@@ -358,12 +390,14 @@
       state))})
 
 (defn on-mouse-enter! []
-  (swap! app assoc :mouse-over true)
-  (start-gravity!))
+  (when-not (:mouse-over @app)
+    (start-gravity!))
+  (swap! app assoc :mouse-over true))
 
 (defn on-mouse-leave! []
-  (swap! app assoc :mouse-over false)
-  (stop-gravity!))
+  (when (:mouse-over @app)
+    (stop-gravity!))
+  (swap! app assoc :mouse-over false))
 
 (rum/defc canvas < canvas-mixin []
   [:.canvas-2a4d7.canvas-mouse-activated
@@ -389,11 +423,12 @@
   (add-watch app :render render))
 
 (defn resume []
+  (manage-gravity-speed!)
   (start-gravity!)
   (.addEventListener js/window "keydown" key-down)
   (.addEventListener js/window "keyup" key-up))
 
 (defn stop []
-  (stop-gravity!)
+  (swap! app assoc :mouse-over false)
   (.removeEventListener js/window "keydown" key-down)
   (.removeEventListener js/window "keyup" key-up))
