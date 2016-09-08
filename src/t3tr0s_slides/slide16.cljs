@@ -258,11 +258,26 @@
     [:code
       (sx/cmt "; TRY IT: Mouse over the board to activate gravity.\n")
       "\n"
+      "(" (sx/core "def") " stop-chan)\n"
+      "(" (sx/core "defn") " stop-gravity! []\n"
+      "  (" (sx/kw "put!") " stop-chan " (sx/lit "0") ")\n"
+      "\n"
       "(" (sx/core "defn") " start-gravity! []\n"
       "  (" (sx/kw "go-loop") " []\n"
-      "    (" (sx/kw "<!") " (" (sx/kw "timeout") " " (sx/lit "500") "))\n"
-      "    (soft-drop!)\n"
-      "    (" (sx/core "recur") ")))\n"]]])
+      "    (" (sx/core "let") " [drop-chan (" (sx/kw "timeout") " " (sx/lit "500") ")\n"
+      "          [_ c] (" (sx/kw "alts!") " [drop-chan stop-chan])]\n"
+      "      (" (sx/core "when") " (" (sx/core "=") " c drop-chan)\n"
+      "        (soft-drop!)\n"
+      "        (" (sx/core "recur") ")))))\n"
+      "\n"
+      "(" (sx/core "defn") " piece-done! []\n"
+      "  (" (sx/kw "go\n")
+      "    (lock-piece!)\n"
+      "    (stop-gravity!)" (sx/cmt "  ; <--- new\n")
+      "    (" (sx/core "when") " (" (sx/core "seq") " (filled-rows (" (sx/lit ":board") " @game)))\n"
+      "      (" (sx/kw "<!") " (animate-collapse!)))\n"
+      "    (spawn-piece!)))\n"
+      "    (start-gravity!)" (sx/cmt " ; <--- new\n")]]])
 
 (def cell-size (quot 600 nrows))
 
@@ -402,13 +417,13 @@
   [:.canvas-2a4d7.canvas-mouse-activated
    [:canvas
     {:ref "canvas"
+     :style {:position "relative"}
      :on-mouse-enter on-mouse-enter!
-     :on-mouse-leave on-mouse-leave!
-     :style {:position "relative"}}]])
+     :on-mouse-leave on-mouse-leave!}]])
 
 (rum/defc slide []
   [:div
-   [:h1 "16. Add simple gravity."]
+   [:h1 "16. Add gravity."]
    (code)
    (canvas)])
 

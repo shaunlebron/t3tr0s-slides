@@ -220,38 +220,30 @@
   [:.code-cb62a
    [:pre
     [:code
-      (sx/cmt "; TRY IT: Mouse over the board to activate gravity.\n")
-      (sx/cmt ";         Press Down for smooth soft-drop.\n")
+      (sx/cmt "; TRY IT: Press Left/Right for smoother movement.\n")
+      (sx/cmt ";         Mouse over the board to activate gravity.\n")
       "\n"
-      "(" (sx/core "def") " move-down-chan (" (sx/kw "chan") " " (sx/lit "1") " (" (sx/core "dedupe") ")))\n"
+      "(" (sx/core "def") " move-left-chan (" (sx/kw "chan") " " (sx/lit "1") " (" (sx/core "dedupe") ")))\n"
+      "(" (sx/core "def") " move-right-chan (" (sx/kw "chan") " " (sx/lit "1") " (" (sx/core "dedupe") ")))\n"
       "\n"
-      "(" (sx/kw "put!") " move-down-chan " (sx/lit "true") ")  " (sx/cmt "; <-- run when down is pressed\n")
-      "(" (sx/kw "put!") " move-down-chan " (sx/lit "false") ") " (sx/cmt "; <-- run when down is released\n")
+      "(" (sx/core "defn") " animate-piece-shift! []\n"
+      "  (" (sx/kw "go-loop") " [speed " (sx/lit "300") "]\n"
+      "    (try-shift! dx)\n"
+      "    (" (sx/core "let") " [[value c] (" (sx/kw "alts!") " [stop-chan (" (sx/kw "timeout") " speed)])]\n"
+      "      (" (sx/core "when-not") " (" (sx/core "=") " c stop-chan)\n"
+      "        (" (sx/core "recur") " " (sx/lit "40") ")))))\n"
       "\n"
-      "(" (sx/core "defn") " manage-gravity-speed! []\n"
-      "  (" (sx/kw "go-loop") " []\n"
-      "    (" (sx/core "swap!") " game " (sx/core "assoc") " " (sx/lit ":soft-drop") " (" (sx/kw "<!") " move-down-chan))\n"
-      "    (stop-gravity!)\n"
-      "    (start-gravity!)\n"
-      "    (" (sx/core "recur") ")))\n"
+      "(" (sx/core "defn") " manage-piece-shift!\n"
+      "  [shift-chan dx]\n"
+      "  (" (sx/core "let") " [stop-chan (" (sx/kw "chan") ")]\n"
+      "    (" (sx/kw "go-loop") " []\n"
+      "      (" (sx/core "if") " (" (sx/kw "<!") " shift-chan)\n"
+      "        (animate-piece-shift! stop-chan dx)\n"
+      "        (" (sx/kw "put!") " stop-chan " (sx/lit "0") "))\n"
+      "      (" (sx/core "recur") "))))\n"
       "\n"
-      "(" (sx/core "defn") " start-gravity! []\n"
-      "  (" (sx/kw "go-loop") " []\n"
-      "    (" (sx/core "let") " [drop-chan (" (sx/kw "timeout") " (" (sx/core "if") " (" (sx/lit ":soft-drop") " @game) " (sx/lit "50 ") (sx/lit "500") "))\n"
-      "          [_ c] (" (sx/kw "alts!") " [drop-chan stop-chan])]\n"
-      "      (" (sx/core "when") " (" (sx/core "=") " c drop-chan)\n"
-      "        (soft-drop!)\n"
-      "        (" (sx/core "recur") ")))))\n"
-      "\n"
-      "(" (sx/core "defn") " piece-done! []\n"
-      "  (" (sx/kw "go\n")
-      "    (lock-piece!)\n"
-      "    (stop-gravity!)\n"
-      "    (" (sx/core "swap!") " game " (sx/core "assoc") " " (sx/lit ":soft-drop") " " (sx/lit "false") ")\n"
-      "    (" (sx/core "when") " (" (sx/core "seq") " (filled-rows (" (sx/lit ":board") " @game)))\n"
-      "      (" (sx/kw "<!") " (animate-collapse!)))\n"
-      "    (spawn-piece!)))\n"
-      "    (start-gravity!)\n"]]])
+      "(manage-piece-shift! move-left-chan " (sx/lit "-1") ")\n"
+      "(manage-piece-shift! move-right-chan " (sx/lit "1") ")\n"]]])
 
 (def cell-size (quot 600 nrows))
 
@@ -341,24 +333,46 @@
 
 (def key-name #(-> % .-keyCode key-names))
 
+(def move-left-chan (chan 1 (dedupe)))
+(def move-right-chan (chan 1 (dedupe)))
 (def move-down-chan (chan 1 (dedupe)))
 
-(def gravity-speed-managed? false)
+(def go-loops-running? false)
+
 (defn manage-gravity-speed! []
-  (when-not gravity-speed-managed?
-    (set! gravity-speed-managed? true)
+  (when-not go-loops-running?
     (go-loop []
       (swap! app assoc :soft-drop (<! move-down-chan))
       (stop-gravity!)
       (start-gravity!)
       (recur))))
 
+(defn animate-piece-shift!
+  "Shifts a piece in the given direction until given channel is closed."
+  [stop-chan dx]
+  (go-loop [speed 300]
+    (try-shift! dx)
+    (let [[value c] (alts! [stop-chan (timeout speed)])]
+      (when-not (= c stop-chan)
+        (recur 40)))))
+
+(defn manage-piece-shift!
+  "Monitors the given shift-chan to control piece-shifting."
+  [shift-chan dx]
+  (when-not go-loops-running?
+    (let [stop-chan (chan)]
+      (go-loop []
+        (if (<! shift-chan)
+          (animate-piece-shift! stop-chan dx)
+          (put! stop-chan 0))
+        (recur)))))
+
 (defn key-down [e]
   (let [kname (key-name e)
         piece (:piece @app)]
    (case kname
-     :left  (when piece (try-shift! -1))
-     :right (when piece (try-shift! 1))
+     :left  (when piece (put! move-left-chan true))
+     :right (when piece (put! move-right-chan true))
      :up    (when piece (try-rotate!))
      :down  (when piece (put! move-down-chan true))
      :space (when piece (hard-drop!))
@@ -370,6 +384,8 @@
   (let [kname (key-name e)
         piece (:piece @app)]
    (case kname
+     :left  (when piece (put! move-left-chan false))
+     :right (when piece (put! move-right-chan false))
      :down  (put! move-down-chan false)
      nil)
    (when (#{:down} kname)
@@ -409,7 +425,7 @@
 
 (rum/defc slide []
   [:div
-   [:h1 "18. Smoothen soft-drop control."]
+   [:h1 "18. Speed-up left/right movement."]
    (code)
    (canvas)])
 
@@ -425,6 +441,9 @@
 (defn resume []
   (manage-gravity-speed!)
   (start-gravity!)
+  (manage-piece-shift! move-left-chan -1)
+  (manage-piece-shift! move-right-chan 1)
+  (set! go-loops-running? true)
   (.addEventListener js/window "keydown" key-down)
   (.addEventListener js/window "keyup" key-up))
 
