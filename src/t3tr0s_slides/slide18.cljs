@@ -369,10 +369,11 @@
 
 (defn key-down [e]
   (let [kname (key-name e)
-        piece (:piece @app)]
+        piece (:piece @app)
+        shift? (aget e "shiftKey")]
    (case kname
-     :left  (when piece (put! move-left-chan true))
-     :right (when piece (put! move-right-chan true))
+     :left  (when (and piece (not shift?)) (put! move-left-chan true))
+     :right (when (and piece (not shift?)) (put! move-right-chan true))
      :up    (when piece (try-rotate!))
      :down  (when piece (put! move-down-chan true))
      :space (when piece (hard-drop!))
@@ -382,10 +383,11 @@
 
 (defn key-up [e]
   (let [kname (key-name e)
-        piece (:piece @app)]
+        piece (:piece @app)
+        shift? (aget e "shiftKey")]
    (case kname
-     :left  (when piece (put! move-left-chan false))
-     :right (when piece (put! move-right-chan false))
+     :left  (when (and piece (not shift?)) (put! move-left-chan false))
+     :right (when (and piece (not shift?)) (put! move-right-chan false))
      :down  (put! move-down-chan false)
      nil)
    (when (#{:down} kname)
