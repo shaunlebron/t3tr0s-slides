@@ -3,6 +3,7 @@
     [cljs.core.async.macros :refer [go go-loop]])
   (:require
     [cljs.core.async :refer [put! take! close! <! >! alts! chan timeout]]
+    [clojure.string :as string]
     [rum.core :as rum]
     [t3tr0s-slides.state :refer [current-slide]]
     [t3tr0s-slides.syntax-highlight :as sx]))
@@ -26,39 +27,50 @@
 (defn rotate-coord [[x y]] [(- y) x])
 (defn rotate-piece [piece] (mapv rotate-coord piece))
 
+(def CELL-EMPTY 0)
+(def CELL-FILLED 1)
+(def CELL-OVER 2) ;; set when game over
+
 (def nrows 20)
 (def ncols 10)
-(def empty-row (vec (repeat ncols 0)))
+(def empty-row (vec (repeat ncols CELL-EMPTY)))
 (def empty-board (vec (repeat nrows empty-row)))
 (def filled-board
-  [[ 0 0 0 0 0 0 0 0 0 0]
-   [ 0 0 0 0 0 0 0 0 0 0]
-   [ 0 0 0 0 0 0 0 0 0 0]
-   [ 0 0 0 0 0 0 0 0 0 0]
-   [ 0 0 0 0 0 0 0 0 0 0]
-   [ 0 0 0 0 0 0 0 0 0 0]
-   [ 0 0 0 0 0 0 0 0 0 0]
-   [ 0 0 0 0 0 0 0 0 0 0]
-   [ 0 0 0 0 0 0 0 0 0 0]
-   [ 0 0 0 0 0 0 0 0 0 0]
-   [ 0 0 0 0 0 0 0 0 0 0]
-   [ 0 0 0 0 0 0 0 0 0 0]
-   [ 0 0 0 0 0 0 0 0 0 0]
-   [ 0 0 0 0 0 0 0 0 0 0]
-   [ 0 0 0 0 0 0 0 0 0 0]
-   [ 0 0 0 0 0 0 0 0 0 0]
-   [ 0 0 0 0 0 0 0 0 0 0]
-   [ 0 0 0 0 0 0 0 0 0 0]
-   [ 0 0 0 0 0 0 0 0 0 0]
-   [ 1 1 1 1 0 1 1 1 1 1]])
+ [[0 0 0 0 0 0 0 0 0 0]
+  [0 0 0 0 0 0 0 0 0 0]
+  [0 0 0 0 0 0 0 0 0 0]
+  [0 0 0 1 0 0 0 0 0 0]
+  [0 1 1 1 0 0 1 0 0 0]
+  [1 0 0 1 1 0 1 0 1 1]
+  [1 0 0 1 1 0 1 0 0 1]
+  [1 1 1 1 1 1 1 0 1 1]
+  [0 1 1 0 0 0 1 0 0 1]
+  [0 1 1 1 0 1 1 1 1 1]
+  [1 1 1 0 1 1 0 0 0 1]
+  [1 1 1 0 1 1 1 0 1 1]
+  [1 1 1 1 1 1 1 0 0 1]
+  [1 0 1 1 0 1 1 1 1 1]
+  [1 0 1 0 1 0 1 1 1 1]
+  [1 1 1 1 1 0 1 1 0 1]
+  [1 1 0 1 1 1 1 1 1 1]
+  [1 0 1 1 1 1 1 1 1 0]
+  [1 1 1 1 1 1 1 1 1 0]
+  [1 1 1 1 0 1 1 1 1 1]])
+
+(def cell-colors
+  {CELL-FILLED {:fill dark-green
+                :stroke light-green}
+   CELL-OVER {:fill dark-red
+              :stroke light-red}})
 
 (def initial-pos [5 2])
 
 (def app (atom {:board filled-board
-                :piece (:L pieces)
+                :piece (rand-nth (vals pieces))
                 :position initial-pos
                 :mouse-over false
-                :soft-drop false}))
+                :soft-drop false
+                :game-over false}))
 
 (defn write-piece
   [board coords [cx cy] value]
@@ -95,7 +107,7 @@
 (defn piece-fits?
   [board piece [cx cy]]
   (every? (fn [[x y]]
-            (zero? (get-in board [(+ y cy) (+ x cx)])))
+            (= CELL-EMPTY (get-in board [(+ y cy) (+ x cx)])))
           piece))
 
 (defn app-piece-fits?
@@ -127,7 +139,7 @@
 (defn filled-rows
   [board]
   (->> (map-indexed vector board)
-       (filter (fn [[i row]] (every? pos? row)))
+       (filter (fn [[i row]] (every? #(= CELL-FILLED %) row)))
        (map first)
        (apply hash-set)))
 
@@ -189,6 +201,15 @@
         (soft-drop!)
         (recur)))))
 
+(defn gameover! []
+  (go
+    (<! (timeout 1000))
+    (let [over-row (vec (repeat ncols CELL-OVER))]
+      (doseq [i (reverse (range nrows))]
+        (swap! app assoc-in [:board i] over-row)
+        (<! (timeout 5))))
+    (swap! app assoc :game-over true)))
+
 (defn piece-done! []
   (lock-piece!)
   (clear-piece!)
@@ -222,30 +243,7 @@
   [:.code-cb62a
    [:pre
     [:code
-      (sx/cmt "; TRY IT: Press Left/Right for smoother movement.\n")
-      (sx/cmt ";         Mouse over the board to activate gravity.\n")
-      "\n"
-      "(" (sx/core "def") " move-left-chan (" (sx/kw "chan") " " (sx/lit "1") " (" (sx/core "dedupe") ")))\n"
-      "(" (sx/core "def") " move-right-chan (" (sx/kw "chan") " " (sx/lit "1") " (" (sx/core "dedupe") ")))\n"
-      "\n"
-      "(" (sx/core "defn") " animate-piece-shift! []\n"
-      "  (" (sx/kw "go-loop") " [speed " (sx/lit "300") "]\n"
-      "    (try-shift! dx)\n"
-      "    (" (sx/core "let") " [[value c] (" (sx/kw "alts!") " [stop-chan (" (sx/kw "timeout") " speed)])]\n"
-      "      (" (sx/core "when-not") " (" (sx/core "=") " c stop-chan)\n"
-      "        (" (sx/core "recur") " " (sx/lit "40") ")))))\n"
-      "\n"
-      "(" (sx/core "defn") " manage-piece-shift!\n"
-      "  [shift-chan dx]\n"
-      "  (" (sx/core "let") " [stop-chan (" (sx/kw "chan") ")]\n"
-      "    (" (sx/kw "go-loop") " []\n"
-      "      (" (sx/core "if") " (" (sx/kw "<!") " shift-chan)\n"
-      "        (animate-piece-shift! stop-chan dx)\n"
-      "        (" (sx/kw "put!") " stop-chan " (sx/lit "0") "))\n"
-      "      (" (sx/core "recur") "))))\n"
-      "\n"
-      "(manage-piece-shift! move-left-chan " (sx/lit "-1") ")\n"
-      "(manage-piece-shift! move-right-chan " (sx/lit "1") ")\n"]]])
+      (sx/cmt "; TRY IT: Mouse over the board to see the animation.\n")]]])
 
 (def cell-size (quot 600 nrows))
 
@@ -285,9 +283,10 @@
             x (range ncols)]
       (set! (.. ctx -globalAlpha) (if (filled? y) 0.3 1))
       (let [v (get-in board [y x])]
-        (when-not (zero? v)
+        (when-let [{:keys [fill stroke]} (cell-colors v)]
+          (set! (.. ctx -fillStyle) fill)
+          (set! (.. ctx -strokeStyle) stroke)
           (draw-cell! ctx [x y] false))))))
-
 
 (defn draw-canvas!
   [canvas]
@@ -296,34 +295,33 @@
     (set! (.. ctx -fillStyle) "#222")
     (.. ctx (fillRect 0 0 (* cell-size ncols) (* cell-size nrows)))
 
-    (set! (.. ctx -fillStyle)   dark-green)
-    (set! (.. ctx -strokeStyle) light-green)
     (draw-board! ctx (:board @app))
     (set! (.. ctx -globalAlpha) 1)
 
-    (when-let [piece (:piece @app)]
-      (let [pos (:position @app)
-            drop-y (get-drop-pos (:board @app) piece pos)
-            drop-pos (assoc pos 1 drop-y)
-            fits (app-piece-fits?)]
+    (when-not (:game-over @app)
+      (when-let [piece (:piece @app)]
+        (let [pos (:position @app)
+              drop-y (get-drop-pos (:board @app) piece pos)
+              drop-pos (assoc pos 1 drop-y)
+              fits (app-piece-fits?)]
 
-        (set! (.. ctx -fillStyle) "#555")
-        (set! (.. ctx -strokeStyle) "#AAA")
-        (let [places (- (second pos) (dec (second initial-pos)))
-              [x y] pos
-              q 5]
-          (dotimes [i places]
-            (set! (.. ctx -globalAlpha) (/ (max 0 (min q (- i (- places q)))) q 5))
-            (draw-piece! ctx piece [x (- y (- places i))])))
+          (set! (.. ctx -fillStyle) "#555")
+          (set! (.. ctx -strokeStyle) "#AAA")
+          (let [places (- (second pos) (dec (second initial-pos)))
+                [x y] pos
+                q 5]
+            (dotimes [i places]
+              (set! (.. ctx -globalAlpha) (/ (max 0 (min q (- i (- places q)))) q 5))
+              (draw-piece! ctx piece [x (- y (- places i))])))
 
-        (set! (.. ctx -globalAlpha) 1)
-        (when (and piece pos)
-          ;(set! (.. ctx -fillStyle)   "#333")
-          ;(set! (.. ctx -strokeStyle) "#666")
-          ;(draw-piece! ctx piece drop-pos)
-          (set! (.. ctx -fillStyle)   (if fits dark-purple dark-red))
-          (set! (.. ctx -strokeStyle) (if fits light-purple light-red))
-          (draw-piece! ctx piece pos))))))
+          (set! (.. ctx -globalAlpha) 1)
+          (when (and piece pos)
+            ;(set! (.. ctx -fillStyle)   "#333")
+            ;(set! (.. ctx -strokeStyle) "#666")
+            ;(draw-piece! ctx piece drop-pos)
+            (set! (.. ctx -fillStyle)   (if fits dark-purple dark-red))
+            (set! (.. ctx -strokeStyle) (if fits light-purple light-red))
+            (draw-piece! ctx piece pos)))))))
 
 (def key-names
   {37 :left
@@ -369,25 +367,27 @@
           (put! stop-chan 0))
         (recur)))))
 
+(defn can-move? []
+  (and (not (:game-over @app))
+       (:piece @app)))
+
 (defn key-down [e]
-  (let [kname (key-name e)
-        piece (:piece @app)]
+  (let [kname (key-name e)]
    (case kname
-     :left  (when piece (put! move-left-chan true))
-     :right (when piece (put! move-right-chan true))
-     :up    (when piece (try-rotate!))
-     :down  (when piece (put! move-down-chan true))
-     :space (when piece (hard-drop!))
+     :left  (when (can-move?) (put! move-left-chan true))
+     :right (when (can-move?) (put! move-right-chan true))
+     :up    (when (can-move?) (try-rotate!))
+     :down  (when (can-move?) (put! move-down-chan true))
+     :space (when (can-move?) (hard-drop!))
      nil)
    (when (#{:down :left :right :space :up} kname)
      (.preventDefault e))))
 
 (defn key-up [e]
-  (let [kname (key-name e)
-        piece (:piece @app)]
+  (let [kname (key-name e)]
    (case kname
-     :left  (when piece (put! move-left-chan false))
-     :right (when piece (put! move-right-chan false))
+     :left  (when (can-move?) (put! move-left-chan false))
+     :right (when (can-move?) (put! move-right-chan false))
      :down  (put! move-down-chan false)
      nil)
    (when (#{:down} kname)

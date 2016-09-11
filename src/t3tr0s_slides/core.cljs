@@ -20,6 +20,7 @@
     [t3tr0s-slides.slide16 :as slide16]
     [t3tr0s-slides.slide17 :as slide17]
     [t3tr0s-slides.slide18 :as slide18]
+    [t3tr0s-slides.slide19 :as slide19]
     [t3tr0s-slides.slide-end :as slide-end]))
 
 (enable-console-print!)
@@ -44,6 +45,7 @@
    {:id "slide16" :init slide16/init :resume slide16/resume :stop slide16/stop}
    {:id "slide17" :init slide17/init :resume slide17/resume :stop slide17/stop}
    {:id "slide18" :init slide18/init :resume slide18/resume :stop slide18/stop}
+   {:id "slide19" :init slide19/init :resume slide19/resume :stop slide19/stop}
    {:id "slide-end" :init slide-end/init :resume slide-end/resume :stop slide-end/stop}])
 
 (defn on-slide-change
