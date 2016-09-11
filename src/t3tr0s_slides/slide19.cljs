@@ -442,7 +442,6 @@
 
 (defn resume []
   (manage-gravity-speed!)
-  (start-gravity!)
   (manage-piece-shift! move-right-chan 1)
   (manage-piece-shift! move-left-chan -1)
   (set! go-loops-running? true)

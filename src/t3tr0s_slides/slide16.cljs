@@ -437,7 +437,6 @@
   (add-watch app :render render))
 
 (defn resume []
-  (start-gravity!)
   (.addEventListener js/window "keydown" key-down))
 
 (defn stop []

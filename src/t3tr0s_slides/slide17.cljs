@@ -424,7 +424,6 @@
 
 (defn resume []
   (manage-gravity-speed!)
-  (start-gravity!)
   (.addEventListener js/window "keydown" key-down)
   (.addEventListener js/window "keyup" key-up))
 
