@@ -243,7 +243,27 @@
   [:.code-cb62a
    [:pre
     [:code
-      (sx/cmt "; TRY IT: Mouse over the board to see the animation.\n")]]])
+      (sx/cmt "; TRY IT: Mouse over the board to see the animation.\n")
+      "\n"
+      "(" (sx/core "defn") " gameover! []\n"
+      "  (" (sx/kw "go") "\n"
+      "    (" (sx/kw "<!") " (" (sx/kw "timeout") " " (sx/lit "1000") "))\n"
+      "    (" (sx/core "let") " [over-row (" (sx/core "vec") " (" (sx/core "repeat") " ncols " (sx/lit "1") "))]\n"
+      "      (" (sx/core "doseq") " [i (" (sx/core "reverse") " (" (sx/core "range") " nrows))]\n"
+      "        (" (sx/core "swap!") " app " (sx/core "assoc-in") " [" (sx/lit ":board") " i] over-row)\n"
+      "        (" (sx/kw "<!") " (" (sx/kw "timeout") " " (sx/lit "5") "))))))\n"
+      "\n"
+      "(" (sx/core "defn") " piece-done! []\n"
+      "  (" (sx/kw "go\n")
+      "    (lock-piece!)\n"
+      "    (stop-gravity!)\n"
+      "    (" (sx/core "swap!") " game " (sx/core "assoc") " " (sx/lit ":soft-drop") " " (sx/lit "false") ")\n"
+      "    (" (sx/core "when") " (" (sx/core "seq") " (filled-rows (" (sx/lit ":board") " @game)))\n"
+      "      (" (sx/kw "<!") " (animate-collapse!)))\n"
+      "    (spawn-piece!)\n"
+      "    (" (sx/core "if") " (piece-fits?)\n"
+      "      (start-gravity!)\n"
+      "      (gameover!))))\n"]]])
 
 (def cell-size (quot 600 nrows))
 

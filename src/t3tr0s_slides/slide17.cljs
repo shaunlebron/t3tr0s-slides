@@ -250,8 +250,8 @@
       "    (" (sx/core "swap!") " game " (sx/core "assoc") " " (sx/lit ":soft-drop") " " (sx/lit "false") ")\n"
       "    (" (sx/core "when") " (" (sx/core "seq") " (filled-rows (" (sx/lit ":board") " @game)))\n"
       "      (" (sx/kw "<!") " (animate-collapse!)))\n"
-      "    (spawn-piece!)))\n"
-      "    (start-gravity!)\n"]]])
+      "    (spawn-piece!)\n"
+      "    (start-gravity!)))\n"]]])
 
 (def cell-size (quot 600 nrows))
 
