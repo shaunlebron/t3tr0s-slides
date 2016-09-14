@@ -262,12 +262,15 @@
      "      (" (sx/kw "<!") " (" (sx/kw "timeout") " " (sx/lit "220") "))\n"
      "      " (data-row 3 (list "(" (sx/core "swap!") " game " (sx/core "assoc") " " (sx/lit ":board") " collapsed)")) ")))\n"
      "\n\n"
-     "(" (sx/core "defn") " piece-done! []\n"
-     "  (" (sx/kw "go\n")
-     "    (lock-piece!)\n"
-     "    (" (sx/core "when") " (" (sx/core "seq") " (filled-rows (" (sx/lit ":board") " @game))) " (sx/cmt "; <--- new\n")
-     "      (" (sx/kw "<!") " (animate-collapse!))) " (sx/cmt "             ; <--- new\n")
-     "    (spawn-piece!)))\n"]]])
+     (sx/old
+       "(" (sx/core "defn") " piece-done! []\n"
+       "  (" (sx/kw "go\n")
+       "    (lock-piece!)\n")
+     (sx/new
+       "    (" (sx/core "when") " (" (sx/core "seq") " (filled-rows (" (sx/lit ":board") " @game)))\n"
+       "      (" (sx/kw "<!") " (animate-collapse!)))\n")
+     (sx/old
+       "    (spawn-piece!)))\n")]]])
 
 (def cell-size (quot 600 nrows))
 

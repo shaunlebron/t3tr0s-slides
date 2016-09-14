@@ -104,6 +104,8 @@ body.loaded .slide-f6d7b {
 .syntax-lit-60e83  { color: #69c; } /* clojure literals (num,str) */
 .syntax-cmt-d159d  { color: #888; } /* clojure comments */
 .syntax-out-3c466  { color: #555; } /* clojure comments */
+.syntax-old { opacity: 0.4; }
+.syntax-new { opacity: 1; }
 
 .active-col-d9099 .syntax-core-4c264 { color: #000; } /* clojure core symbols */
 .active-col-d9099 .syntax-kw-18cc2   { color: #000; } /* clojure keywords */

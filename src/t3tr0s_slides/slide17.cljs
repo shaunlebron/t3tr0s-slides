@@ -235,23 +235,31 @@
       "    (start-gravity!)\n"
       "    (" (sx/core "recur") ")))\n"
       "\n"
-      "(" (sx/core "defn") " start-gravity! []\n"
-      "  (" (sx/kw "go-loop") " []\n"
-      "    (" (sx/core "let") " [drop-chan (" (sx/kw "timeout") " (" (sx/core "if") " (" (sx/lit ":soft-drop") " @game) " (sx/lit "50 ") (sx/lit "500") "))\n"
-      "          [_ c] (" (sx/kw "alts!") " [drop-chan stop-chan])]\n"
-      "      (" (sx/core "when") " (" (sx/core "=") " c drop-chan)\n"
-      "        (soft-drop!)\n"
-      "        (" (sx/core "recur") ")))))\n"
+      (sx/old
+        "(" (sx/core "defn") " start-gravity! []\n"
+        "  (" (sx/kw "go-loop") " []\n")
+      (sx/old
+        "    (" (sx/core "let") " [drop-chan (" (sx/kw "timeout"))
+      (sx/new " (" (sx/core "if") " (" (sx/lit ":soft-drop") " @game) " (sx/lit "50 ") (sx/lit "500") ")")
+      (sx/old ")\n")
+      (sx/old
+        "          [_ c] (" (sx/kw "alts!") " [drop-chan stop-chan])]\n"
+        "      (" (sx/core "when") " (" (sx/core "=") " c drop-chan)\n"
+        "        (soft-drop!)\n"
+        "        (" (sx/core "recur") ")))))\n")
       "\n"
-      "(" (sx/core "defn") " piece-done! []\n"
-      "  (" (sx/kw "go\n")
-      "    (lock-piece!)\n"
-      "    (stop-gravity!)\n"
-      "    (" (sx/core "swap!") " game " (sx/core "assoc") " " (sx/lit ":soft-drop") " " (sx/lit "false") ")\n"
-      "    (" (sx/core "when") " (" (sx/core "seq") " (filled-rows (" (sx/lit ":board") " @game)))\n"
-      "      (" (sx/kw "<!") " (animate-collapse!)))\n"
-      "    (spawn-piece!)\n"
-      "    (start-gravity!)))\n"]]])
+      (sx/old
+        "(" (sx/core "defn") " piece-done! []\n"
+        "  (" (sx/kw "go\n")
+        "    (lock-piece!)\n"
+        "    (stop-gravity!)\n")
+      (sx/new
+        "    (" (sx/core "swap!") " game " (sx/core "assoc") " " (sx/lit ":soft-drop") " " (sx/lit "false") ")\n")
+      (sx/old
+        "    (" (sx/core "when") " (" (sx/core "seq") " (filled-rows (" (sx/lit ":board") " @game)))\n"
+        "      (" (sx/kw "<!") " (animate-collapse!)))\n"
+        "    (spawn-piece!)\n"
+        "    (start-gravity!)))\n")]]])
 
 (def cell-size (quot 600 nrows))
 

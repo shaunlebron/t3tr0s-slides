@@ -270,14 +270,19 @@
       "        (soft-drop!)\n"
       "        (" (sx/core "recur") ")))))\n"
       "\n"
-      "(" (sx/core "defn") " piece-done! []\n"
-      "  (" (sx/kw "go\n")
-      "    (lock-piece!)\n"
-      "    (stop-gravity!)" (sx/cmt "  ; <--- new\n")
-      "    (" (sx/core "when") " (" (sx/core "seq") " (filled-rows (" (sx/lit ":board") " @game)))\n"
-      "      (" (sx/kw "<!") " (animate-collapse!)))\n"
-      "    (spawn-piece!)))\n"
-      "    (start-gravity!)" (sx/cmt " ; <--- new\n")]]])
+      (sx/old
+        "(" (sx/core "defn") " piece-done! []\n"
+        "  (" (sx/kw "go\n")
+        "    (lock-piece!)\n")
+      (sx/new
+        "    (stop-gravity!)\n")
+      (sx/old
+        "    (" (sx/core "when") " (" (sx/core "seq") " (filled-rows (" (sx/lit ":board") " @game)))\n"
+        "      (" (sx/kw "<!") " (animate-collapse!)))\n"
+        "    (spawn-piece!)\n")
+      (sx/new
+        "    (start-gravity!)")
+      (sx/old "))\n")]]])
 
 (def cell-size (quot 600 nrows))
 

@@ -253,17 +253,20 @@
       "        (" (sx/core "swap!") " app " (sx/core "assoc-in") " [" (sx/lit ":board") " i] over-row)\n"
       "        (" (sx/kw "<!") " (" (sx/kw "timeout") " " (sx/lit "5") "))))))\n"
       "\n"
-      "(" (sx/core "defn") " piece-done! []\n"
-      "  (" (sx/kw "go\n")
-      "    (lock-piece!)\n"
-      "    (stop-gravity!)\n"
-      "    (" (sx/core "swap!") " game " (sx/core "assoc") " " (sx/lit ":soft-drop") " " (sx/lit "false") ")\n"
-      "    (" (sx/core "when") " (" (sx/core "seq") " (filled-rows (" (sx/lit ":board") " @game)))\n"
-      "      (" (sx/kw "<!") " (animate-collapse!)))\n"
-      "    (spawn-piece!)\n"
-      "    (" (sx/core "if") " (piece-fits?)\n"
-      "      (start-gravity!)\n"
-      "      (gameover!))))\n"]]])
+      (sx/old
+        "(" (sx/core "defn") " piece-done! []\n"
+        "  (" (sx/kw "go\n")
+        "    (lock-piece!)\n"
+        "    (stop-gravity!)\n"
+        "    (" (sx/core "swap!") " game " (sx/core "assoc") " " (sx/lit ":soft-drop") " " (sx/lit "false") ")\n"
+        "    (" (sx/core "when") " (" (sx/core "seq") " (filled-rows (" (sx/lit ":board") " @game)))\n"
+        "      (" (sx/kw "<!") " (animate-collapse!)))\n"
+        "    (spawn-piece!)\n")
+      (sx/new
+        "    (" (sx/core "if-not") " (piece-fits?)\n"
+        "      (gameover!)\n")
+      (sx/old
+        "      (start-gravity!))))")]]])
 
 (def cell-size (quot 600 nrows))
 

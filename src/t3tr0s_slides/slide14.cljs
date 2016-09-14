@@ -192,10 +192,13 @@
      "(" (sx/core "defn") " collapse-rows! []\n"
      "  (" (sx/core "swap!") " game " (sx/core "update-in") " [" (sx/kw ":board") "] collapse-rows))\n"
      "\n"
-     "(" (sx/core "defn") " piece-done! []\n"
-     "  (lock-piece!)\n"
-     "  (collapse-rows!) " (sx/cmt "; <--- new\n")
-     "  (spawn-piece!))\n"]]])
+     (sx/old
+       "(" (sx/core "defn") " piece-done! []\n"
+       "  (lock-piece!)\n")
+     (sx/new
+       "  (collapse-rows!)\n")
+     (sx/old
+       "  (spawn-piece!))\n")]]])
 
 
 (def cell-size (quot 600 rows))
